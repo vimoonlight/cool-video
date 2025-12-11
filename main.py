@@ -206,3 +206,198 @@ def generate_html(most_liked, most_commented, brands, creators):
             }}
 
             .video-wrapper {{
+                position: relative;
+                padding-bottom: 56.25%; /* 16:9 */
+                height: 0;
+                background: #000;
+            }}
+
+            .video-wrapper iframe {{
+                position: absolute;
+                top: 0; left: 0; width: 100%; height: 100%;
+                border: 0;
+            }}
+
+            .info {{ padding: 20px; }}
+
+            .title {{
+                font-size: 1rem;
+                font-weight: 600;
+                line-height: 1.5;
+                margin-bottom: 12px;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                height: 3em;
+            }}
+
+            .meta {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+            }}
+
+            .channel {{
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }}
+            
+            .stat-badge {{
+                background: #333;
+                padding: 4px 8px;
+                border-radius: 4px;
+                color: #fff;
+                font-size: 0.75rem;
+                font-weight: bold;
+            }}
+
+            /* 响应式调整 */
+            @media (max-width: 600px) {{
+                .nav-container {{ gap: 15px; overflow-x: auto; justify-content: flex-start; }}
+                .tab-btn {{ font-size: 0.85rem; white-space: nowrap; }}
+                h1 {{ font-size: 1.4rem; }}
+            }}
+        </style>
+    </head>
+    <body>
+
+        <header>
+            <h1>VISION</h1>
+            <div class="date">GLOBAL TRENDS • {today}</div>
+        </header>
+
+        <nav class="nav-container">
+            <button class="tab-btn active" onclick="openTab(event, 'likes')">Most Liked (最多赞)</button>
+            <button class="tab-btn" onclick="openTab(event, 'comments')">Most Discussed (热议中)</button>
+            <button class="tab-btn" onclick="openTab(event, 'brands')">Brand Zone (品牌区)</button>
+            <button class="tab-btn" onclick="openTab(event, 'creators')">Creator Zone (个人区)</button>
+        </nav>
+
+        <div class="container">
+            <!-- 1. 最多赞 -->
+            <div id="likes" class="tab-content active">
+                <div class="grid">
+                    {render_cards(most_liked, 'likes')}
+                </div>
+            </div>
+
+            <!-- 2. 最多评论 -->
+            <div id="comments" class="tab-content">
+                <div class="grid">
+                    {render_cards(most_commented, 'comments')}
+                </div>
+            </div>
+
+            <!-- 3. 品牌 -->
+            <div id="brands" class="tab-content">
+                <div class="grid">
+                    {render_cards(brands, 'brand')}
+                </div>
+            </div>
+
+            <!-- 4. 个人 -->
+            <div id="creators" class="tab-content">
+                <div class="grid">
+                    {render_cards(creators, 'creator')}
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function openTab(evt, tabName) {{
+                // 1. 隐藏所有 tab-content
+                var i, tabcontent, tablinks;
+                tabcontent = document.getElementsByClassName("tab-content");
+                for (i = 0; i < tabcontent.length; i++) {{
+                    tabcontent[i].style.display = "none";
+                    tabcontent[i].classList.remove("active");
+                }}
+
+                // 2. 移除所有 tab-btn 的 active 状态
+                tablinks = document.getElementsByClassName("tab-btn");
+                for (i = 0; i < tablinks.length; i++) {{
+                    tablinks[i].className = tablinks[i].className.replace(" active", "");
+                }}
+
+                // 3. 显示当前 ID 并激活按钮
+                document.getElementById(tabName).style.display = "block";
+                setTimeout(() => {{
+                    document.getElementById(tabName).classList.add("active");
+                }}, 10);
+                evt.currentTarget.className += " active";
+            }}
+        </script>
+    </body>
+    </html>
+    """
+    
+    with open("index.html", "w", encoding="utf-8") as f:
+        f.write(html)
+
+def render_cards(videos, mode):
+    html = ""
+    for v in videos:
+        # 获取统计数据
+        stats = v.get('statistics', {})
+        like_cnt = int(stats.get('likeCount', 0))
+        comm_cnt = int(stats.get('commentCount', 0))
+        
+        # 格式化函数
+        def fmt(num):
+            if num > 1000000: return f"{round(num/1000000, 1)}M"
+            if num > 1000: return f"{round(num/1000, 1)}K"
+            return str(num)
+
+        # 根据不同模式显示不同的核心数据
+        badge_html = ""
+        if mode == 'likes': 
+            badge_html = f'<div class="stat-badge">♥ {fmt(like_cnt)} Likes</div>'
+        elif mode == 'comments':
+            badge_html = f'<div class="stat-badge">💬 {fmt(comm_cnt)} Comments</div>'
+        else:
+            badge_html = f'<div class="stat-badge">Play</div>'
+
+        html += f"""
+        <div class="card">
+            <div class="video-wrapper">
+                <iframe src="https://www.youtube.com/embed/{v['id']}" loading="lazy" allowfullscreen></iframe>
+            </div>
+            <div class="info">
+                <div class="title">{v['snippet']['title']}</div>
+                <div class="meta">
+                    <div class="channel">
+                        <span style="font-weight:500">{v['snippet']['channelTitle']}</span>
+                    </div>
+                    {badge_html}
+                </div>
+            </div>
+        </div>
+        """
+    return html
+
+def main():
+    if not API_KEY: return
+    youtube = get_youtube_service()
+    
+    # 1. 抓取全球大池子
+    global_pool = fetch_global_pool(youtube)
+    
+    # 2. 排序出两个榜单
+    # 按点赞数排序
+    most_liked = sorted(global_pool, key=lambda x: int(x['statistics'].get('likeCount', 0)), reverse=True)[:50]
+    # 按评论数排序
+    most_commented = sorted(global_pool, key=lambda x: int(x['statistics'].get('commentCount', 0)), reverse=True)[:50]
+    
+    # 3. 抓取特定频道
+    brands = fetch_list_latest(youtube, BRAND_CHANNELS)
+    creators = fetch_list_latest(youtube, CREATOR_CHANNELS)
+    
+    # 4. 生成网页
+    generate_html(most_liked, most_commented, brands, creators)
+
+if __name__ == "__main__":
+    main()
