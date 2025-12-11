@@ -5,97 +5,77 @@ from googleapiclient.discovery import build
 # --- 1. 配置区域 ---
 API_KEY = os.environ.get("YOUTUBE_API_KEY")
 
-# 品牌监控名单 (你仍然需要手动指定你想看的顶级品牌，因为纯靠算法很难精准抓到最新的商业广告)
-# 这里放了几个全球顶级创意大户: Apple, Nike, Red Bull, SpaceX
+# 【名单 A】品牌/商业广告 (Brand Zone)
 BRAND_CHANNELS = [
     'UCE_M8A5yxnLfW0KghEeajjw', # Apple
     'UCL8RlvQSa4YEj74wLBSku-A', # Nike
-    'UCblfuW_4rakIfk66AQ40hIg', # Red Bull (极限运动很有创意)
-    'UCtI0Hodo5o5dUb67FeUjDeA', # SpaceX (硬核科技)
+    'UCblfuW_4rakIfk66AQ40hIg', # Red Bull
+    'UCtI0Hodo5o5dUb67FeUjDeA', # SpaceX
+    'UC0UBX6y5bL1sU7Oq6wMv0aA', # Samsung
+]
+
+# 【名单 B】个人博主 (Creator Zone)
+CREATOR_CHANNELS = [
+    'UCbjptxcv1U12W8xc_1fL8HQ', # Peter McKinnon
+    'UCX6OQ3DkcsbYNE6H8uQQuVA', # MrBeast
+    'UCtinbF-Q-fVthA0qFrcFb9Q', # Casey Neistat
+    'UCBJycsmduvYEL83R_U4JriQ', # MKBHD
+    'UCsooa4yRKGN_zEE8iknghZA', # TED-Ed
 ]
 
 def get_youtube_service():
     return build('youtube', 'v3', developerKey=API_KEY)
 
-# --- 核心逻辑：获取全球24小时最火 ---
-def fetch_global_viral(youtube):
-    print("正在扫描全球热门数据...")
+# --- 核心逻辑 ---
+
+def fetch_list_latest(youtube, channels):
+    """抓取指定名单的最新视频"""
     videos = []
-    
-    # 设定时间窗口：过去 24 小时
+    print(f"正在抓取名单视频，共 {len(channels)} 个频道...")
+    for channel_id in channels:
+        try:
+            res = youtube.search().list(
+                channelId=channel_id, part='snippet,id', order='date', maxResults=1, type='video'
+            ).execute()
+            
+            if res['items']:
+                item = res['items'][0]
+                vid = item['id']['videoId']
+                # 补全数据
+                stats_res = youtube.videos().list(id=vid, part='statistics').execute()
+                if stats_res['items']:
+                    item['statistics'] = stats_res['items'][0]['statistics']
+                    videos.append(item)
+        except Exception as e:
+            print(f"频道 {channel_id} 错误: {e}")
+    return videos
+
+def fetch_global_pool(youtube):
+    """抓取全球热门池 (60个用于筛选)"""
+    print("正在扫描全球数据池...")
+    videos = []
     yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).isoformat("T") + "Z"
     
     try:
-        # 1. 搜索阶段：找过去24小时播放最高的视频 (不限地区，不限语言)
+        # 搜索
         search_response = youtube.search().list(
-            part='id',
-            order='viewCount',  # 核心：只按播放量
-            type='video',
-            publishedAfter=yesterday,
-            maxResults=50       # 先抓50个候选
+            part='id', order='viewCount', type='video', publishedAfter=yesterday, maxResults=50
         ).execute()
         
         video_ids = [item['id']['videoId'] for item in search_response['items']]
         
-        # 2. 详情阶段：获取详细数据 (播放量、评论数、点赞数)
         if video_ids:
-            stats_response = youtube.videos().list(
-                id=','.join(video_ids),
-                part='snippet,statistics'
-            ).execute()
+            # 详情
+            stats_response = youtube.videos().list(id=','.join(video_ids), part='snippet,statistics').execute()
+            videos = stats_response['items']
             
-            for item in stats_response['items']:
-                # 数据清洗，防止有的视频没有评论权限导致报错
-                stats = item['statistics']
-                item['viewCount'] = int(stats.get('viewCount', 0))
-                item['commentCount'] = int(stats.get('commentCount', 0))
-                item['likeCount'] = int(stats.get('likeCount', 0))
-                item['tag'] = 'Global'
-                videos.append(item)
-                
     except Exception as e:
-        print(f"全球抓取出错: {e}")
-        
+        print(f"全球池错误: {e}")
     return videos
 
-# --- 辅助逻辑：获取品牌最新 ---
-def fetch_brands(youtube):
-    print("正在检查品牌动态...")
-    videos = []
-    for channel_id in BRAND_CHANNELS:
-        try:
-            # 获取该频道最新的视频
-            res = youtube.search().list(
-                channelId=channel_id, part='id', order='date', maxResults=1, type='video'
-            ).execute()
-            
-            if res['items']:
-                vid = res['items'][0]['id']['videoId']
-                # 获取详情
-                stats_res = youtube.videos().list(id=vid, part='snippet,statistics').execute()
-                item = stats_res['items'][0]
-                
-                # 检查是否是最近2天发布的，太旧的不要
-                published = item['snippet']['publishedAt']
-                # 简单补全数据
-                stats = item['statistics']
-                item['viewCount'] = int(stats.get('viewCount', 0))
-                item['commentCount'] = int(stats.get('commentCount', 0))
-                item['tag'] = 'Brand'
-                videos.append(item)
-        except:
-            pass
-    return videos
-
-# --- 生成酷炫的黑色风格网页 ---
-def generate_html(viral_videos, brand_videos):
-    today = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    
-    # 1. 数据分榜
-    # 按播放量排序 (取前 10)
-    most_viewed = sorted(viral_videos, key=lambda x: x['viewCount'], reverse=True)[:10]
-    # 按评论量排序 (取前 10)
-    most_discussed = sorted(viral_videos, key=lambda x: x['commentCount'], reverse=True)[:10]
+# --- 网页生成 (核心 UI 设计) ---
+def generate_html(most_liked, most_commented, brands, creators):
+    today = datetime.datetime.now().strftime("%Y-%m-%d")
     
     html = f"""
     <!DOCTYPE html>
@@ -103,113 +83,126 @@ def generate_html(viral_videos, brand_videos):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Global Viral 24H</title>
+        <title>VISION | Curated Video Trends</title>
         <style>
-            body {{ background-color: #0f0f0f; color: #ffffff; font-family: 'Roboto', sans-serif; margin: 0; padding: 20px; }}
-            .container {{ max-width: 1000px; margin: 0 auto; }}
-            h1 {{ text-align: center; color: #ff0033; letter-spacing: 2px; text-transform: uppercase; }}
-            h2 {{ border-left: 5px solid #ff0033; padding-left: 15px; margin-top: 50px; color: #fff; }}
-            .time {{ text-align: center; color: #888; font-size: 0.9em; margin-bottom: 40px; }}
+            :root {{
+                --bg-color: #0a0a0a;
+                --card-bg: #161616;
+                --text-primary: #ffffff;
+                --text-secondary: #888888;
+                --accent: #ffffff; /* 极简白作为强调色 */
+            }}
             
-            .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }}
+            body {{
+                background-color: var(--bg-color);
+                color: var(--text-primary);
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                overflow-x: hidden;
+            }}
+
+            /* 顶部 Header */
+            header {{
+                padding: 40px 20px;
+                text-align: center;
+                background: linear-gradient(to bottom, #000 0%, #0a0a0a 100%);
+            }}
             
-            .card {{ background: #1e1e1e; border-radius: 10px; overflow: hidden; transition: transform 0.2s; }}
-            .card:hover {{ transform: translateY(-5px); box-shadow: 0 10px 20px rgba(255,0,51,0.2); }}
+            h1 {{
+                font-weight: 200;
+                letter-spacing: 4px;
+                text-transform: uppercase;
+                margin: 0;
+                font-size: 1.8rem;
+            }}
             
-            .video-wrap {{ position: relative; padding-bottom: 56.25%; height: 0; }}
-            .video-wrap iframe {{ position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }}
+            .date {{ font-size: 0.8rem; color: var(--text-secondary); margin-top: 10px; letter-spacing: 1px; }}
+
+            /* 导航栏 (Tab) */
+            .nav-container {{
+                display: flex;
+                justify-content: center;
+                gap: 30px;
+                margin-bottom: 30px;
+                padding: 0 20px;
+                border-bottom: 1px solid #222;
+                position: sticky;
+                top: 0;
+                background: rgba(10, 10, 10, 0.95);
+                backdrop-filter: blur(10px);
+                z-index: 100;
+            }}
+
+            .tab-btn {{
+                background: none;
+                border: none;
+                color: var(--text-secondary);
+                font-size: 0.95rem;
+                padding: 15px 5px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-weight: 500;
+                letter-spacing: 0.5px;
+                position: relative;
+            }}
+
+            .tab-btn:hover {{ color: var(--text-primary); }}
+
+            .tab-btn.active {{
+                color: var(--text-primary);
+            }}
+
+            .tab-btn.active::after {{
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 2px;
+                background-color: var(--accent);
+            }}
+
+            /* 内容区域 */
+            .container {{
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 20px;
+                min-height: 80vh;
+            }}
+
+            .tab-content {{
+                display: none;
+                animation: fadeIn 0.5s ease;
+            }}
             
-            .info {{ padding: 15px; }}
-            .title {{ font-size: 1.1em; font-weight: bold; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }}
-            .stats {{ display: flex; justify-content: space-between; font-size: 0.85em; color: #aaa; }}
-            .stat-item {{ display: flex; align-items: center; gap: 5px; }}
-            .badge {{ background: #333; padding: 2px 6px; border-radius: 4px; font-size: 0.7em; }}
-            .brand-tag {{ background: #ff0033; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8em; }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>Global Viral Trends</h1>
-            <p class="time">Last Updated: {today} (UTC)</p>
+            .tab-content.active {{ display: block; }}
 
-            <!-- 品牌精选区 -->
-            <h2>💎 Brand New (最新品牌创意)</h2>
-            <div class="grid">
-    """
-    
-    # 渲染品牌
-    for v in brand_videos:
-        html += render_card(v, is_brand=True)
-        
-    html += """
-            </div>
+            @keyframes fadeIn {{
+                from {{ opacity: 0; transform: translateY(10px); }}
+                to {{ opacity: 1; transform: translateY(0); }}
+            }}
 
-            <!-- 播放榜 -->
-            <h2>🔥 Most Viewed (24h 全球播放最高)</h2>
-            <div class="grid">
-    """
-    
-    for v in most_viewed:
-        html += render_card(v)
+            /* 网格系统 */
+            .grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                gap: 30px;
+            }}
 
-    html += """
-            </div>
+            /* 卡片设计 */
+            .card {{
+                background: var(--card-bg);
+                border-radius: 12px;
+                overflow: hidden;
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                border: 1px solid #222;
+            }}
 
-            <!-- 热议榜 -->
-            <h2>💬 Most Discussed (24h 评论增长最快)</h2>
-            <div class="grid">
-    """
-    
-    for v in most_discussed:
-        html += render_card(v)
-        
-    html += """
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-    
-    with open("index.html", "w", encoding="utf-8") as f:
-        f.write(html)
+            .card:hover {{
+                transform: translateY(-5px);
+                box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+                border-color: #333;
+            }}
 
-def render_card(v, is_brand=False):
-    # 格式化数字 (例如 12000 -> 12k)
-    def fmt(num):
-        if num > 1000000: return f"{round(num/1000000, 1)}M"
-        if num > 1000: return f"{round(num/1000, 1)}K"
-        return str(num)
-
-    tag_html = '<span class="brand-tag">AD</span>' if is_brand else ''
-    
-    return f"""
-    <div class="card">
-        <div class="video-wrap">
-            <iframe src="https://www.youtube.com/embed/{v['id']}" loading="lazy" allowfullscreen></iframe>
-        </div>
-        <div class="info">
-            <div class="title">{tag_html} {v['snippet']['title']}</div>
-            <div class="stats">
-                <span class="stat-item">👁️ {fmt(v['viewCount'])}</span>
-                <span class="stat-item">💬 {fmt(v['commentCount'])}</span>
-            </div>
-            <div style="margin-top:8px; font-size:0.8em; color:#666;">
-                {v['snippet']['channelTitle']}
-            </div>
-        </div>
-    </div>
-    """
-
-def main():
-    if not API_KEY: return
-    youtube = get_youtube_service()
-    
-    # 1. 获取两类数据
-    viral = fetch_global_viral(youtube)
-    brands = fetch_brands(youtube)
-    
-    # 2. 生成网页
-    generate_html(viral, brands)
-
-if __name__ == "__main__":
-    main()
+            .video-wrapper {{
