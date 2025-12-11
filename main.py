@@ -12,6 +12,8 @@ BRAND_CHANNELS = [
     'UCblfuW_4rakIfk66AQ40hIg', # Red Bull
     'UCtI0Hodo5o5dUb67FeUjDeA', # SpaceX
     'UC0UBX6y5bL1sU7Oq6wMv0aA', # Samsung
+    'UCx5XG1Lnc65_3rLqQWa_49w', # Louis Vuitton
+    'UCOHMGt67_u8FjT_L4t8Zcww', # Gucci
 ]
 
 # 【名单 B】个人博主 (Creator Zone)
@@ -21,6 +23,7 @@ CREATOR_CHANNELS = [
     'UCtinbF-Q-fVthA0qFrcFb9Q', # Casey Neistat
     'UCBJycsmduvYEL83R_U4JriQ', # MKBHD
     'UCsooa4yRKGN_zEE8iknghZA', # TED-Ed
+    'UCAL3JXZSzSm8AlZyD3nQdBA', # Primitive Technology
 ]
 
 def get_youtube_service():
@@ -54,27 +57,55 @@ def fetch_list_latest(youtube, channels):
     return videos
 
 def fetch_global_pool(youtube):
-    """抓取全球热门池 (50个用于筛选)"""
-    print("正在扫描全球数据池...")
+    """强力抓取全球热门池 (强制翻页以获取更多数据)"""
+    print("正在扫描全球数据池 (Deep Scan)...")
     videos = []
-    # 昨天的时间
     yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).isoformat("T") + "Z"
     
-    try:
-        # 搜索
-        search_response = youtube.search().list(
-            part='id', order='viewCount', type='video', publishedAfter=yesterday, maxResults=50
-        ).execute()
-        
-        video_ids = [item['id']['videoId'] for item in search_response['items']]
-        
-        if video_ids:
-            # 详情
-            stats_response = youtube.videos().list(id=','.join(video_ids), part='snippet,statistics').execute()
-            videos = stats_response['items']
+    # 我们将收集到的 ID 先存这里
+    candidate_ids = []
+    next_page_token = None
+    
+    # 循环抓取，最多抓 3 页 (每页50个，理论上限150个候选)
+    for _ in range(3):
+        try:
+            search_response = youtube.search().list(
+                part='id', 
+                order='viewCount', 
+                type='video', 
+                publishedAfter=yesterday, 
+                maxResults=50,
+                pageToken=next_page_token
+            ).execute()
             
-    except Exception as e:
-        print(f"全球池错误: {e}")
+            for item in search_response['items']:
+                candidate_ids.append(item['id']['videoId'])
+            
+            next_page_token = search_response.get('nextPageToken')
+            if not next_page_token:
+                break # 没有下一页了
+                
+        except Exception as e:
+            print(f"搜索翻页出错: {e}")
+            break
+    
+    print(f"共找到 {len(candidate_ids)} 个候选视频 ID，正在获取详细数据...")
+
+    # YouTube API 限制一次最多查 50 个详情，所以要分批查询
+    # Python 切片技巧: candidates[0:50], candidates[50:100], ...
+    for i in range(0, len(candidate_ids), 50):
+        batch_ids = candidate_ids[i : i+50]
+        if not batch_ids: continue
+        
+        try:
+            stats_response = youtube.videos().list(
+                id=','.join(batch_ids), 
+                part='snippet,statistics'
+            ).execute()
+            videos.extend(stats_response['items'])
+        except Exception as e:
+            print(f"详情获取出错: {e}")
+
     return videos
 
 # --- 网页生成 (核心 UI 设计) ---
@@ -87,76 +118,83 @@ def generate_html(most_liked, most_commented, brands, creators):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>VISION | Curated Video Trends</title>
+        <title>VISION | Global Trends</title>
         <style>
             :root {{
-                --bg-color: #0a0a0a;
-                --card-bg: #161616;
-                --text-primary: #ffffff;
-                --text-secondary: #888888;
-                --accent: #ffffff;
+                --bg-color: #050505;
+                --card-bg: #141414;
+                --text-primary: #e5e5e5;
+                --text-secondary: #a3a3a3;
+                --accent: #fff;
             }}
             body {{
                 background-color: var(--bg-color);
                 color: var(--text-primary);
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
                 margin: 0; padding: 0;
             }}
             header {{
-                padding: 40px 20px; text-align: center;
-                background: linear-gradient(to bottom, #000 0%, #0a0a0a 100%);
+                padding: 60px 20px 40px; text-align: center;
+                background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%);
             }}
-            h1 {{ font-weight: 200; letter-spacing: 4px; text-transform: uppercase; margin: 0; font-size: 1.8rem; }}
-            .date {{ font-size: 0.8rem; color: var(--text-secondary); margin-top: 10px; letter-spacing: 1px; }}
+            h1 {{ font-weight: 700; letter-spacing: -1px; margin: 0; font-size: 2.5rem; color: #fff; }}
+            .date {{ font-size: 0.85rem; color: var(--text-secondary); margin-top: 10px; text-transform: uppercase; letter-spacing: 2px; }}
+            
             .nav-container {{
-                display: flex; justify-content: center; gap: 20px; margin-bottom: 30px;
-                padding: 10px 20px; border-bottom: 1px solid #222; position: sticky; top: 0;
-                background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(10px); z-index: 100;
+                display: flex; justify-content: center; gap: 40px; margin-bottom: 40px;
+                padding: 15px 20px; border-bottom: 1px solid #262626; position: sticky; top: 0;
+                background: rgba(5, 5, 5, 0.95); backdrop-filter: blur(12px); z-index: 100;
                 flex-wrap: wrap;
             }}
             .tab-btn {{
-                background: none; border: none; color: var(--text-secondary);
-                font-size: 0.9rem; padding: 10px 15px; cursor: pointer;
-                transition: all 0.3s ease; font-weight: 500; position: relative;
+                background: none; border: none; color: #666;
+                font-size: 1rem; padding: 10px 0; cursor: pointer;
+                transition: color 0.3s ease; font-weight: 500; position: relative;
             }}
-            .tab-btn:hover {{ color: var(--text-primary); }}
-            .tab-btn.active {{ color: var(--text-primary); }}
+            .tab-btn:hover {{ color: #fff; }}
+            .tab-btn.active {{ color: #fff; }}
             .tab-btn.active::after {{
-                content: ''; position: absolute; bottom: -11px; left: 0;
-                width: 100%; height: 2px; background-color: var(--accent);
+                content: ''; position: absolute; bottom: -16px; left: 0;
+                width: 100%; height: 2px; background-color: #fff;
             }}
-            .container {{ max-width: 1400px; margin: 0 auto; padding: 20px; min-height: 80vh; }}
-            .tab-content {{ display: none; animation: fadeIn 0.5s ease; }}
+            
+            .container {{ max-width: 1600px; margin: 0 auto; padding: 0 40px 60px; min-height: 80vh; }}
+            .tab-content {{ display: none; animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }}
             .tab-content.active {{ display: block; }}
-            @keyframes fadeIn {{ from {{ opacity: 0; transform: translateY(10px); }} to {{ opacity: 1; transform: translateY(0); }} }}
-            .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }}
+            @keyframes fadeIn {{ from {{ opacity: 0; transform: translateY(20px); }} to {{ opacity: 1; transform: translateY(0); }} }}
+            
+            .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 40px 30px; }}
             .card {{
-                background: var(--card-bg); border-radius: 12px; overflow: hidden;
-                transition: transform 0.3s ease; border: 1px solid #222;
+                background: transparent; border-radius: 0; overflow: hidden;
+                transition: transform 0.3s ease;
             }}
-            .card:hover {{ transform: translateY(-5px); border-color: #333; }}
-            .video-wrapper {{ position: relative; padding-bottom: 56.25%; height: 0; background: #000; }}
-            .video-wrapper iframe {{ position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }}
-            .info {{ padding: 20px; }}
+            .card:hover .video-wrapper {{ transform: scale(1.02); border-radius: 8px; }}
+            .video-wrapper {{ 
+                position: relative; padding-bottom: 56.25%; height: 0; background: #000; 
+                border-radius: 4px; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            }}
+            .video-wrapper iframe {{ position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; border-radius: inherit; }}
+            
+            .info {{ padding: 15px 0 0 0; }}
             .title {{
-                font-size: 0.95rem; font-weight: 600; line-height: 1.4; margin-bottom: 12px;
-                display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 2.8em;
+                font-size: 1rem; font-weight: 500; line-height: 1.4; margin-bottom: 8px;
+                display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #fff;
             }}
-            .meta {{ display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-secondary); }}
-            .stat-badge {{ background: #333; padding: 4px 8px; border-radius: 4px; color: #fff; font-size: 0.75rem; font-weight: bold; }}
+            .meta {{ display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #888; }}
+            .stat-highlight {{ color: #fff; font-weight: 600; }}
         </style>
     </head>
     <body>
         <header>
             <h1>VISION</h1>
-            <div class="date">GLOBAL TRENDS • {today}</div>
+            <div class="date">{today} • GLOBAL EDITION</div>
         </header>
 
         <nav class="nav-container">
-            <button class="tab-btn active" onclick="openTab(event, 'likes')">Most Liked (最多赞)</button>
-            <button class="tab-btn" onclick="openTab(event, 'comments')">Most Discussed (热议中)</button>
-            <button class="tab-btn" onclick="openTab(event, 'brands')">Brand Zone (品牌区)</button>
-            <button class="tab-btn" onclick="openTab(event, 'creators')">Creator Zone (个人区)</button>
+            <button class="tab-btn active" onclick="openTab(event, 'likes')">Most Liked</button>
+            <button class="tab-btn" onclick="openTab(event, 'comments')">Most Discussed</button>
+            <button class="tab-btn" onclick="openTab(event, 'brands')">Brand Selection</button>
+            <button class="tab-btn" onclick="openTab(event, 'creators')">Creator Showcase</button>
         </nav>
 
         <div class="container">
@@ -191,25 +229,26 @@ def generate_html(most_liked, most_commented, brands, creators):
 def render_cards(videos, mode):
     html = ""
     if not videos:
-        return "<p style='padding:20px; color:#666'>No data available right now.</p>"
+        return "<p style='color:#666; padding:20px'>Loading trends...</p>"
         
     for v in videos:
         stats = v.get('statistics', {})
         like_cnt = int(stats.get('likeCount', 0))
         comm_cnt = int(stats.get('commentCount', 0))
+        view_cnt = int(stats.get('viewCount', 0))
         
         def fmt(num):
             if num > 1000000: return f"{round(num/1000000, 1)}M"
             if num > 1000: return f"{round(num/1000, 1)}K"
             return str(num)
 
-        badge_html = ""
+        meta_html = ""
         if mode == 'likes': 
-            badge_html = f'<div class="stat-badge">♥ {fmt(like_cnt)} Likes</div>'
+            meta_html = f'<span>♥ <span class="stat-highlight">{fmt(like_cnt)}</span></span>'
         elif mode == 'comments':
-            badge_html = f'<div class="stat-badge">💬 {fmt(comm_cnt)} Comments</div>'
+            meta_html = f'<span>💬 <span class="stat-highlight">{fmt(comm_cnt)}</span></span>'
         else:
-            badge_html = f'<div class="stat-badge">Play</div>'
+            meta_html = f'<span>👁️ {fmt(view_cnt)}</span>'
 
         html += f"""
         <div class="card">
@@ -217,10 +256,10 @@ def render_cards(videos, mode):
                 <iframe src="https://www.youtube.com/embed/{v['id']}" loading="lazy" allowfullscreen></iframe>
             </div>
             <div class="info">
-                <div class="title">{v['snippet']['title']}</div>
+                <div class="title" title="{v['snippet']['title']}">{v['snippet']['title']}</div>
                 <div class="meta">
-                    <span style="font-weight:500">{v['snippet']['channelTitle']}</span>
-                    {badge_html}
+                    <span>{v['snippet']['channelTitle']}</span>
+                    {meta_html}
                 </div>
             </div>
         </div>
@@ -231,10 +270,14 @@ def main():
     youtube = get_youtube_service()
     if not youtube: return
     
+    # 1. 抓取全球池 (现在会翻3页，最多拿150个候选)
     global_pool = fetch_global_pool(youtube)
+    
+    # 2. 排序并取前 50
     most_liked = sorted(global_pool, key=lambda x: int(x['statistics'].get('likeCount', 0)), reverse=True)[:50]
     most_commented = sorted(global_pool, key=lambda x: int(x['statistics'].get('commentCount', 0)), reverse=True)[:50]
     
+    # 3. 抓取列表
     brands = fetch_list_latest(youtube, BRAND_CHANNELS)
     creators = fetch_list_latest(youtube, CREATOR_CHANNELS)
     
