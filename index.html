@@ -4,183 +4,1458 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>VISION | Global Trends</title>
+        <title>VISION | World Edition</title>
         <style>
-            :root {
-                --bg-color: #050505;
-                --card-bg: #141414;
-                --text-primary: #e5e5e5;
-                --text-secondary: #a3a3a3;
-                --accent: #fff;
-            }
-            body {
-                background-color: var(--bg-color);
-                color: var(--text-primary);
-                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-                margin: 0; padding: 0;
-            }
-            header {
-                padding: 60px 20px 40px; text-align: center;
-                background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%);
-            }
-            h1 { font-weight: 700; letter-spacing: -1px; margin: 0; font-size: 2.5rem; color: #fff; }
-            .date { font-size: 0.85rem; color: var(--text-secondary); margin-top: 10px; text-transform: uppercase; letter-spacing: 2px; }
+            :root { --bg: #050505; --card: #141414; --text: #e5e5e5; --accent: #fff; }
+            body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; }
             
-            .nav-container {
-                display: flex; justify-content: center; gap: 40px; margin-bottom: 40px;
-                padding: 15px 20px; border-bottom: 1px solid #262626; position: sticky; top: 0;
-                background: rgba(5, 5, 5, 0.95); backdrop-filter: blur(12px); z-index: 100;
-                flex-wrap: wrap;
-            }
-            .tab-btn {
-                background: none; border: none; color: #666;
-                font-size: 1rem; padding: 10px 0; cursor: pointer;
-                transition: color 0.3s ease; font-weight: 500; position: relative;
-            }
-            .tab-btn:hover { color: #fff; }
-            .tab-btn.active { color: #fff; }
-            .tab-btn.active::after {
-                content: ''; position: absolute; bottom: -16px; left: 0;
-                width: 100%; height: 2px; background-color: #fff;
-            }
+            header { padding: 80px 20px 50px; text-align: center; background: radial-gradient(circle at top, #1a1a1a 0%, #050505 80%); }
+            h1 { margin: 0; font-size: 3rem; letter-spacing: -2px; font-weight: 800; background: linear-gradient(to right, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+            .date { color: #666; font-size: 0.8rem; margin-top: 15px; letter-spacing: 3px; text-transform: uppercase; }
             
-            .container { max-width: 1600px; margin: 0 auto; padding: 0 40px 60px; min-height: 80vh; }
-            .tab-content { display: none; animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-            .tab-content.active { display: block; }
-            @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+            .nav { display: flex; justify-content: center; gap: 30px; padding: 20px; border-bottom: 1px solid #222; position: sticky; top: 0; background: rgba(5,5,5,0.95); backdrop-filter: blur(10px); z-index: 99; overflow-x: auto; }
+            .btn { background: none; border: none; color: #666; cursor: pointer; font-size: 0.9rem; padding: 10px 15px; font-weight: 600; white-space: nowrap; transition: 0.3s; }
+            .btn:hover { color: #fff; }
+            .btn.active { color: #fff; border-bottom: 2px solid #fff; }
+            
+            .container { max-width: 1600px; margin: 0 auto; padding: 40px 20px; min-height: 80vh; }
+            .tab { display: none; animation: fade 0.6s; }
+            .tab.active { display: block; }
+            @keyframes fade { from {opacity:0; transform:translateY(20px);} to {opacity:1; transform:translateY(0);} }
             
             .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 40px 30px; }
-            .card {
-                background: transparent; border-radius: 0; overflow: hidden;
-                transition: transform 0.3s ease;
-            }
-            .card:hover .video-wrapper { transform: scale(1.02); border-radius: 8px; }
-            .video-wrapper { 
-                position: relative; padding-bottom: 56.25%; height: 0; background: #000; 
-                border-radius: 4px; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            }
-            .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; border-radius: inherit; }
+            .card { background: transparent; transition: transform 0.3s; }
+            .card:hover .vid { transform: scale(1.03); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
             
-            .info { padding: 15px 0 0 0; }
-            .title {
-                font-size: 1rem; font-weight: 500; line-height: 1.4; margin-bottom: 8px;
-                display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #fff;
-            }
-            .meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #888; }
-            .stat-highlight { color: #fff; font-weight: 600; }
+            .vid { position: relative; padding-bottom: 56.25%; background: #111; border-radius: 8px; transition: all 0.4s ease; overflow: hidden; }
+            .vid iframe { position: absolute; top:0; left:0; width:100%; height:100%; border:0; }
+            
+            .info { padding-top: 15px; }
+            .title { font-weight: 600; font-size: 1rem; margin-bottom: 8px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+            .meta { color: #888; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
+            .hl { color: #fff; font-weight: bold; background: #222; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
         </style>
     </head>
     <body>
         <header>
             <h1>VISION</h1>
-            <div class="date">2025-12-13 • GLOBAL EDITION</div>
+            <div class="date">2025-12-14 • WORLD EDITION</div>
         </header>
-
-        <nav class="nav-container">
-            <button class="tab-btn active" onclick="openTab(event, 'likes')">Most Liked</button>
-            <button class="tab-btn" onclick="openTab(event, 'comments')">Most Discussed</button>
-            <button class="tab-btn" onclick="openTab(event, 'brands')">Brand Selection</button>
-            <button class="tab-btn" onclick="openTab(event, 'creators')">Creator Showcase</button>
+        <nav class="nav">
+            <button class="btn active" onclick="show('likes', this)">Global Top Liked</button>
+            <button class="btn" onclick="show('comments', this)">Global Top Discussed</button>
+            <button class="btn" onclick="show('brands', this)">Brand Zone</button>
+            <button class="btn" onclick="show('creators', this)">Creator Zone</button>
         </nav>
-
         <div class="container">
-            <div id="likes" class="tab-content active"><div class="grid"><p style='color:#666; padding:20px'>Loading trends...</p></div></div>
-            <div id="comments" class="tab-content"><div class="grid"><p style='color:#666; padding:20px'>Loading trends...</p></div></div>
-            <div id="brands" class="tab-content"><div class="grid">
+            <div id="likes" class="tab active"><div class="grid">
         <div class="card">
-            <div class="video-wrapper">
-                <iframe src="https://www.youtube.com/embed/{'kind': 'youtube#video', 'videoId': 'HGp005A-2mM'}" loading="lazy" allowfullscreen></iframe>
-            </div>
+            <div class="vid"><iframe src="https://www.youtube.com/embed/hcNVG7JCxoE" loading="lazy" allowfullscreen></iframe></div>
             <div class="info">
-                <div class="title" title="Get your focus back with downtime. Tip from Garryn at the Apple Store. #Shorts">Get your focus back with downtime. Tip from Garryn at the Apple Store. #Shorts</div>
+                <div class="title" title="Dekhlenge Saala Lyrical Video | Ustaad Bhagat Singh | Pawan Kalyan | Harish Shankar| Devi Sri Prasad">Dekhlenge Saala Lyrical Video | Ustaad Bhagat Singh | Pawan Kalyan | Harish Shankar| Devi Sri Prasad</div>
                 <div class="meta">
-                    <span>Apple</span>
-                    <span>👁️ 47.0K</span>
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Sony Music South</span>
+                    <span class="hl">♥ 416.6K</span>
                 </div>
             </div>
         </div>
         
         <div class="card">
-            <div class="video-wrapper">
-                <iframe src="https://www.youtube.com/embed/{'kind': 'youtube#video', 'videoId': 'rcd_SQZDlnk'}" loading="lazy" allowfullscreen></iframe>
+            <div class="vid"><iframe src="https://www.youtube.com/embed/YqdAEdkHrwo" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Supergirl | Official Teaser Trailer">Supergirl | Official Teaser Trailer</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">DC</span>
+                    <span class="hl">♥ 352.7K</span>
+                </div>
             </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/d-BDeU3R5ic" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="THE GAME AWARDS 2025: Official 4K60FPS Livestream">THE GAME AWARDS 2025: Official 4K60FPS Livestream</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">thegameawards</span>
+                    <span class="hl">♥ 291.2K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/0WFx6v8tvFg" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="#VIDEO | रंगबाज़ | RANGBAAZ | Khesari Lal Yadav, Shilpi Raj | Priyanka Rai | New Bhojpuri Song 2025">#VIDEO | रंगबाज़ | RANGBAAZ | Khesari Lal Yadav, Shilpi Raj | Priyanka Rai | New Bhojpuri Song 2025</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Khesari Music World</span>
+                    <span class="hl">♥ 259.3K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/MPuK06zUIhc" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Pooh Shiesty - FDO [Official Music Video]">Pooh Shiesty - FDO [Official Music Video]</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Pooh Shiesty</span>
+                    <span class="hl">♥ 234.5K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/KjDuZfuBI8Q" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="JLEXIS X DANI BARRANCO X ALOFOKE MUSIC - ENVUELTOS">JLEXIS X DANI BARRANCO X ALOFOKE MUSIC - ENVUELTOS</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">AlofokeMusicSounds</span>
+                    <span class="hl">♥ 224.2K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/7hTbNeHqGD8" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="EXO 엑소 'I'm Home' MV">EXO 엑소 'I'm Home' MV</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">SMTOWN</span>
+                    <span class="hl">♥ 174.9K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/MQqOEpzePqg" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="BHA BHA BA TRAILER | Dilieep | Mohanlal | Gokulam Gopalan | Vineeth | Dhyan | Dhananjay Shankar">BHA BHA BA TRAILER | Dilieep | Mohanlal | Gokulam Gopalan | Vineeth | Dhyan | Dhananjay Shankar</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Sree Gokulam Movies</span>
+                    <span class="hl">♥ 173.1K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/eaGZALpqExU" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="BRAWL TALK: Buffies, Chaos Drops and Brawl Pass Rework!">BRAWL TALK: Buffies, Chaos Drops and Brawl Pass Rework!</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Brawl Stars</span>
+                    <span class="hl">♥ 168.4K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/7FcV5Tt3tug" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="HACKER OR WHAT! | JONATHAN IS BACK!! | BGMI + Hero Xtreme 125R & 160R 4V Feature Check">HACKER OR WHAT! | JONATHAN IS BACK!! | BGMI + Hero Xtreme 125R & 160R 4V Feature Check</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">JONATHAN GAMING</span>
+                    <span class="hl">♥ 147.2K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/DWCl2dN6hpg" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="1 Pro vs 500 Hunters">1 Pro vs 500 Hunters</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">MrBeast Gaming</span>
+                    <span class="hl">♥ 133.2K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/lAmkl1jL0fo" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Star Wars: Fate of the Old Republic Teaser Trailer">Star Wars: Fate of the Old Republic Teaser Trailer</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Star Wars</span>
+                    <span class="hl">♥ 95.5K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/RZliZbfM0Ek" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Red Baron vs White Death. Epic Rap Battles of History">Red Baron vs White Death. Epic Rap Battles of History</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">ERB</span>
+                    <span class="hl">♥ 91.3K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/m_D0KVzslOQ" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Nice Life: Episode 2 - NETHER ESCAPE!">Nice Life: Episode 2 - NETHER ESCAPE!</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Grian</span>
+                    <span class="hl">♥ 60.2K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/LrabOJbMLy8" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="[ 恆星不忘 ✦ Forever Forever ]  周杰倫Jay ╳ 言承旭Jerry ╳ 吳建豪VanNess ╳ 周渝民Vic  ╳ 五月天阿信 Ashin｜Music Video">[ 恆星不忘 ✦ Forever Forever ]  周杰倫Jay ╳ 言承旭Jerry ╳ 吳建豪VanNess ╳ 周渝民Vic  ╳ 五月天阿信 Ashin｜Music Video</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">相信音樂BinMusic</span>
+                    <span class="hl">♥ 56.5K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/HV6RakCs2dc" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Rehman Dakait Entry Song - Full Video Song | Fa9la | Dhurandhar | Balochi Song Dhurandhar">Rehman Dakait Entry Song - Full Video Song | Fa9la | Dhurandhar | Balochi Song Dhurandhar</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Rapstar AK</span>
+                    <span class="hl">♥ 53.7K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/GBUHXYnwgl4" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="2025 GC Grand Finals | Day 2 | WATCHPARTY WITH SNAX">2025 GC Grand Finals | Day 2 | WATCHPARTY WITH SNAX</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Snax Gaming</span>
+                    <span class="hl">♥ 48.2K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/eOFC2YUVauM" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="New NORTH POLE UPDATE + Festive Lucky Blocks!">New NORTH POLE UPDATE + Festive Lucky Blocks!</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">CaylusBlox</span>
+                    <span class="hl">♥ 40.9K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/cO8wz4NpQHM" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Upgrading House From Dirt to Diamond in House Civilization in Minecraft!">Upgrading House From Dirt to Diamond in House Civilization in Minecraft!</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">ProBoiz 95</span>
+                    <span class="hl">♥ 35.1K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/qyzYckDVGtY" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="QUEM CONHECE MELHOR OS AMIGOS? - THE YOU QUIZ COM OS AMIGOS">QUEM CONHECE MELHOR OS AMIGOS? - THE YOU QUIZ COM OS AMIGOS</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">alanzoka</span>
+                    <span class="hl">♥ 31.5K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/BEUjeOWBK0o" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="氷川きよし - きよしのズンドコ節 / THE FIRST TAKE">氷川きよし - きよしのズンドコ節 / THE FIRST TAKE</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">THE FIRST TAKE</span>
+                    <span class="hl">♥ 27.5K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/mY4kG7IB9go" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="小学生が田舎で暮らすだけのホラーゲーム『 いえのあじ 』が異常に怖い">小学生が田舎で暮らすだけのホラーゲーム『 いえのあじ 』が異常に怖い</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">キヨ。</span>
+                    <span class="hl">♥ 26.1K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/n-NWtR6Upro" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="SPECIALE BLIZZARD : LE RETOUR">SPECIALE BLIZZARD : LE RETOUR</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Bazar du Grenier</span>
+                    <span class="hl">♥ 25.0K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/S4kq4wTD0Hg" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Bogdan DLP - Aladam | Official Video">Bogdan DLP - Aladam | Official Video</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Bogdan DLP</span>
+                    <span class="hl">♥ 21.6K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/ze_9ykz-LXA" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Kodak Black I NEED A BEAT - [Official Music Video]">Kodak Black I NEED A BEAT - [Official Music Video]</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Kodak Black</span>
+                    <span class="hl">♥ 21.4K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/ICpw2v83Eiw" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Lucas A.R.T. - RADIOATIVO">Lucas A.R.T. - RADIOATIVO</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">7 Minutoz</span>
+                    <span class="hl">♥ 19.5K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/xkU2sDdZeeQ" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="塗りまくれ！にじさんじイカ祭り2025 Day1【スプラトゥーン3】#にじイカ祭り2025">塗りまくれ！にじさんじイカ祭り2025 Day1【スプラトゥーン3】#にじイカ祭り2025</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">にじさんじ</span>
+                    <span class="hl">♥ 19.4K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/waILDhNd2Fw" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="NOVO BRAWL TALK  DUBLADO em PORTUGUÊS - BRASIL! É MUITA MUDANÇA!!">NOVO BRAWL TALK  DUBLADO em PORTUGUÊS - BRASIL! É MUITA MUDANÇA!!</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Tio Gus</span>
+                    <span class="hl">♥ 18.5K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/c5kiviIk-ok" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="AK-69 - And I Love You So 2026 Remastered [Official Video]">AK-69 - And I Love You So 2026 Remastered [Official Video]</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">AK-69 Official Channel</span>
+                    <span class="hl">♥ 18.4K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/8Uv2r4Y4E_0" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="SHOKO SHOKO - REBO (Clip Officiel)">SHOKO SHOKO - REBO (Clip Officiel)</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Rebo Officiel</span>
+                    <span class="hl">♥ 18.3K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/0PfwzZKzooQ" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="【超学生×四季凪アキラ】おこちゃま戦争 @歌ってみた">【超学生×四季凪アキラ】おこちゃま戦争 @歌ってみた</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Chogakusei Official</span>
+                    <span class="hl">♥ 18.2K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/WogLliLdk4M" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Steal a Brainrot Update (North Pole)">Steal a Brainrot Update (North Pole)</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">KreekCraft</span>
+                    <span class="hl">♥ 15.8K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/AMX6s8HLo6k" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="🔴ADMIN ABUSE + Nouveau OG Skibidi Toilet 🚽">🔴ADMIN ABUSE + Nouveau OG Skibidi Toilet 🚽</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Unchained_Off</span>
+                    <span class="hl">♥ 15.0K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/DtguKz5TiiU" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="[성시경 노래] 64. 白い恋人達 (하얀 연인들) l Sung Si Kyung Music">[성시경 노래] 64. 白い恋人達 (하얀 연인들) l Sung Si Kyung Music</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">성시경 SUNG SI KYUNG</span>
+                    <span class="hl">♥ 14.7K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/ndkjasne_iw" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="DK vs T1 하이라이트 | Losers Finals | 2025 LoL KeSPA CUP">DK vs T1 하이라이트 | Losers Finals | 2025 LoL KeSPA CUP</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">한국e스포츠협회</span>
+                    <span class="hl">♥ 14.1K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/NIcf1L0HNrU" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Forest 3 - Official Announcement Trailer | The Game Awards 2025">Forest 3 - Official Announcement Trailer | The Game Awards 2025</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">IGN</span>
+                    <span class="hl">♥ 13.8K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/A3grs51hCPg" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="JOLIN 蔡依林《Fish Love》Official Music Video">JOLIN 蔡依林《Fish Love》Official Music Video</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">JOLIN 蔡依林</span>
+                    <span class="hl">♥ 13.5K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/KdPwIt2f0ZI" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="DAS KANN NICHT WAHR SEIN">DAS KANN NICHT WAHR SEIN</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">LUCREW</span>
+                    <span class="hl">♥ 12.2K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/MBU_u3vXeG4" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="ANÁLISE TEASER TRAILER SUPERGIRL">ANÁLISE TEASER TRAILER SUPERGIRL</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Ei Nerd</span>
+                    <span class="hl">♥ 10.7K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/bouHy4dwclM" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="《尋秦記》最新預告曝光12月31日原班人馬重現大銀幕">《尋秦記》最新預告曝光12月31日原班人馬重現大銀幕</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">One Cool Film</span>
+                    <span class="hl">♥ 10.6K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/VoRK3ANNWjA" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="FELIX BLUME - KANZLER (FULL CINEMATIC ALBUM EXPERIENCE)">FELIX BLUME - KANZLER (FULL CINEMATIC ALBUM EXPERIENCE)</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Felix Blume</span>
+                    <span class="hl">♥ 10.4K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/i4sqxJ1FXF4" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Voici Mes BASES SECRETES Sur Steal A Brainrot !">Voici Mes BASES SECRETES Sur Steal A Brainrot !</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Toinelag Gaming</span>
+                    <span class="hl">♥ 9.8K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/M3IVifxXDvs" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Lartiste x Nej x Benny Adam x Bnet Oudaden - Hadak Zine (Clip Officiel)">Lartiste x Nej x Benny Adam x Bnet Oudaden - Hadak Zine (Clip Officiel)</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Lartiste</span>
+                    <span class="hl">♥ 8.4K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/bxy3-YKHi_0" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="不管我畫什麼都會變成刀子！？">不管我畫什麼都會變成刀子！？</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Yuan2020</span>
+                    <span class="hl">♥ 7.9K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/mjtYzJ1FgjM" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="ROBLOX 跑酷，但每過20秒就有一個新詛咒！最後同時4個詛咒，你還可以全破?!【Obby But You're Cursed - 有感筆電】">ROBLOX 跑酷，但每過20秒就有一個新詛咒！最後同時4個詛咒，你還可以全破?!【Obby But You're Cursed - 有感筆電】</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">有感筆電 Daptoper</span>
+                    <span class="hl">♥ 7.6K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/bPrUOneiEHw" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="🔴LIVE DAS NORDPOOL EVENT in STEAL a BRAINROT! ADMIN EVENT!">🔴LIVE DAS NORDPOOL EVENT in STEAL a BRAINROT! ADMIN EVENT!</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Standart Skill</span>
+                    <span class="hl">♥ 7.5K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/5q9jvBtRmbY" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Bushido - Du liebst mich nicht">Bushido - Du liebst mich nicht</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">BUSHIDO</span>
+                    <span class="hl">♥ 7.5K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/XfwM4GOxtwg" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Kalamkaval Success Teaser | Mammootty | Vinayakan | Jithin K Jose | Mammootty Kampany">Kalamkaval Success Teaser | Mammootty | Vinayakan | Jithin K Jose | Mammootty Kampany</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Mammootty Kampany</span>
+                    <span class="hl">♥ 7.4K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/ujVuKdpOL74" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="The Lord of The Rings Trilogy - Official 25th Anniversary Teaser Trailer">The Lord of The Rings Trilogy - Official 25th Anniversary Teaser Trailer</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">IGN</span>
+                    <span class="hl">♥ 7.3K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/DkTJQU-VIj8" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="【最終回 予告】 真犯人、だーれだ？">【最終回 予告】 真犯人、だーれだ？</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">日テレドラマ公式チャンネル</span>
+                    <span class="hl">♥ 7.1K</span>
+                </div>
+            </div>
+        </div>
+        </div></div>
+            <div id="comments" class="tab"><div class="grid">
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/0WFx6v8tvFg" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="#VIDEO | रंगबाज़ | RANGBAAZ | Khesari Lal Yadav, Shilpi Raj | Priyanka Rai | New Bhojpuri Song 2025">#VIDEO | रंगबाज़ | RANGBAAZ | Khesari Lal Yadav, Shilpi Raj | Priyanka Rai | New Bhojpuri Song 2025</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Khesari Music World</span>
+                    <span class="hl">💬 66.7K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/7hTbNeHqGD8" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="EXO 엑소 'I'm Home' MV">EXO 엑소 'I'm Home' MV</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">SMTOWN</span>
+                    <span class="hl">💬 25.0K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/MPuK06zUIhc" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Pooh Shiesty - FDO [Official Music Video]">Pooh Shiesty - FDO [Official Music Video]</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Pooh Shiesty</span>
+                    <span class="hl">💬 22.1K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/KjDuZfuBI8Q" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="JLEXIS X DANI BARRANCO X ALOFOKE MUSIC - ENVUELTOS">JLEXIS X DANI BARRANCO X ALOFOKE MUSIC - ENVUELTOS</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">AlofokeMusicSounds</span>
+                    <span class="hl">💬 20.9K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/YqdAEdkHrwo" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Supergirl | Official Teaser Trailer">Supergirl | Official Teaser Trailer</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">DC</span>
+                    <span class="hl">💬 19.4K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/MQqOEpzePqg" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="BHA BHA BA TRAILER | Dilieep | Mohanlal | Gokulam Gopalan | Vineeth | Dhyan | Dhananjay Shankar">BHA BHA BA TRAILER | Dilieep | Mohanlal | Gokulam Gopalan | Vineeth | Dhyan | Dhananjay Shankar</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Sree Gokulam Movies</span>
+                    <span class="hl">💬 17.5K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/eaGZALpqExU" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="BRAWL TALK: Buffies, Chaos Drops and Brawl Pass Rework!">BRAWL TALK: Buffies, Chaos Drops and Brawl Pass Rework!</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Brawl Stars</span>
+                    <span class="hl">💬 16.2K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/LrabOJbMLy8" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="[ 恆星不忘 ✦ Forever Forever ]  周杰倫Jay ╳ 言承旭Jerry ╳ 吳建豪VanNess ╳ 周渝民Vic  ╳ 五月天阿信 Ashin｜Music Video">[ 恆星不忘 ✦ Forever Forever ]  周杰倫Jay ╳ 言承旭Jerry ╳ 吳建豪VanNess ╳ 周渝民Vic  ╳ 五月天阿信 Ashin｜Music Video</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">相信音樂BinMusic</span>
+                    <span class="hl">💬 10.4K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/RZliZbfM0Ek" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Red Baron vs White Death. Epic Rap Battles of History">Red Baron vs White Death. Epic Rap Battles of History</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">ERB</span>
+                    <span class="hl">💬 10.0K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/hcNVG7JCxoE" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Dekhlenge Saala Lyrical Video | Ustaad Bhagat Singh | Pawan Kalyan | Harish Shankar| Devi Sri Prasad">Dekhlenge Saala Lyrical Video | Ustaad Bhagat Singh | Pawan Kalyan | Harish Shankar| Devi Sri Prasad</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Sony Music South</span>
+                    <span class="hl">💬 8.3K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/lAmkl1jL0fo" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Star Wars: Fate of the Old Republic Teaser Trailer">Star Wars: Fate of the Old Republic Teaser Trailer</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Star Wars</span>
+                    <span class="hl">💬 7.6K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/DWCl2dN6hpg" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="1 Pro vs 500 Hunters">1 Pro vs 500 Hunters</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">MrBeast Gaming</span>
+                    <span class="hl">💬 5.5K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/ndkjasne_iw" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="DK vs T1 하이라이트 | Losers Finals | 2025 LoL KeSPA CUP">DK vs T1 하이라이트 | Losers Finals | 2025 LoL KeSPA CUP</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">한국e스포츠협회</span>
+                    <span class="hl">💬 4.9K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/5q9jvBtRmbY" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Bushido - Du liebst mich nicht">Bushido - Du liebst mich nicht</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">BUSHIDO</span>
+                    <span class="hl">💬 3.5K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/cO8wz4NpQHM" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Upgrading House From Dirt to Diamond in House Civilization in Minecraft!">Upgrading House From Dirt to Diamond in House Civilization in Minecraft!</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">ProBoiz 95</span>
+                    <span class="hl">💬 2.9K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/m_D0KVzslOQ" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Nice Life: Episode 2 - NETHER ESCAPE!">Nice Life: Episode 2 - NETHER ESCAPE!</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Grian</span>
+                    <span class="hl">💬 2.6K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/BEUjeOWBK0o" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="氷川きよし - きよしのズンドコ節 / THE FIRST TAKE">氷川きよし - きよしのズンドコ節 / THE FIRST TAKE</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">THE FIRST TAKE</span>
+                    <span class="hl">💬 2.4K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/DtguKz5TiiU" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="[성시경 노래] 64. 白い恋人達 (하얀 연인들) l Sung Si Kyung Music">[성시경 노래] 64. 白い恋人達 (하얀 연인들) l Sung Si Kyung Music</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">성시경 SUNG SI KYUNG</span>
+                    <span class="hl">💬 2.3K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/d-BDeU3R5ic" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="THE GAME AWARDS 2025: Official 4K60FPS Livestream">THE GAME AWARDS 2025: Official 4K60FPS Livestream</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">thegameawards</span>
+                    <span class="hl">💬 2.2K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/DkTJQU-VIj8" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="【最終回 予告】 真犯人、だーれだ？">【最終回 予告】 真犯人、だーれだ？</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">日テレドラマ公式チャンネル</span>
+                    <span class="hl">💬 2.0K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/8Uv2r4Y4E_0" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="SHOKO SHOKO - REBO (Clip Officiel)">SHOKO SHOKO - REBO (Clip Officiel)</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Rebo Officiel</span>
+                    <span class="hl">💬 2.0K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/ze_9ykz-LXA" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Kodak Black I NEED A BEAT - [Official Music Video]">Kodak Black I NEED A BEAT - [Official Music Video]</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Kodak Black</span>
+                    <span class="hl">💬 1.9K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/mY4kG7IB9go" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="小学生が田舎で暮らすだけのホラーゲーム『 いえのあじ 』が異常に怖い">小学生が田舎で暮らすだけのホラーゲーム『 いえのあじ 』が異常に怖い</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">キヨ。</span>
+                    <span class="hl">💬 1.8K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/MaQj6_xC7jE" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="STREET FIGHTER Official Teaser Trailer (2026)">STREET FIGHTER Official Teaser Trailer (2026)</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">KinoCheck.com</span>
+                    <span class="hl">💬 1.6K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/S4kq4wTD0Hg" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Bogdan DLP - Aladam | Official Video">Bogdan DLP - Aladam | Official Video</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Bogdan DLP</span>
+                    <span class="hl">💬 1.5K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/HV6RakCs2dc" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Rehman Dakait Entry Song - Full Video Song | Fa9la | Dhurandhar | Balochi Song Dhurandhar">Rehman Dakait Entry Song - Full Video Song | Fa9la | Dhurandhar | Balochi Song Dhurandhar</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Rapstar AK</span>
+                    <span class="hl">💬 1.5K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/7N9dhR_0REc" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="ALLDAY PROJECT - ‘LOOK AT ME’ PERFORMANCE VIDEO">ALLDAY PROJECT - ‘LOOK AT ME’ PERFORMANCE VIDEO</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">THEBLACKLABEL</span>
+                    <span class="hl">💬 1.4K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/NIcf1L0HNrU" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Forest 3 - Official Announcement Trailer | The Game Awards 2025">Forest 3 - Official Announcement Trailer | The Game Awards 2025</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">IGN</span>
+                    <span class="hl">💬 1.3K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/VoRK3ANNWjA" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="FELIX BLUME - KANZLER (FULL CINEMATIC ALBUM EXPERIENCE)">FELIX BLUME - KANZLER (FULL CINEMATIC ALBUM EXPERIENCE)</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Felix Blume</span>
+                    <span class="hl">💬 1.3K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/bouHy4dwclM" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="《尋秦記》最新預告曝光12月31日原班人馬重現大銀幕">《尋秦記》最新預告曝光12月31日原班人馬重現大銀幕</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">One Cool Film</span>
+                    <span class="hl">💬 1.3K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/ICpw2v83Eiw" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Lucas A.R.T. - RADIOATIVO">Lucas A.R.T. - RADIOATIVO</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">7 Minutoz</span>
+                    <span class="hl">💬 1.2K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/c5kiviIk-ok" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="AK-69 - And I Love You So 2026 Remastered [Official Video]">AK-69 - And I Love You So 2026 Remastered [Official Video]</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">AK-69 Official Channel</span>
+                    <span class="hl">💬 1.1K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/A3grs51hCPg" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="JOLIN 蔡依林《Fish Love》Official Music Video">JOLIN 蔡依林《Fish Love》Official Music Video</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">JOLIN 蔡依林</span>
+                    <span class="hl">💬 1.1K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/waILDhNd2Fw" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="NOVO BRAWL TALK  DUBLADO em PORTUGUÊS - BRASIL! É MUITA MUDANÇA!!">NOVO BRAWL TALK  DUBLADO em PORTUGUÊS - BRASIL! É MUITA MUDANÇA!!</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Tio Gus</span>
+                    <span class="hl">💬 1.1K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/tx7fWqIu8tE" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="와.. 간만에 제대로 뽑혔다..  DC ≪슈퍼걸≫ 공식 예고편 떡밥 총정리">와.. 간만에 제대로 뽑혔다..  DC ≪슈퍼걸≫ 공식 예고편 떡밥 총정리</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">무비띵크_Movie Think</span>
+                    <span class="hl">💬 1.1K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/n-NWtR6Upro" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="SPECIALE BLIZZARD : LE RETOUR">SPECIALE BLIZZARD : LE RETOUR</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Bazar du Grenier</span>
+                    <span class="hl">💬 963</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/tVAg19hcB1U" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="[슈퍼걸]1차 예고편">[슈퍼걸]1차 예고편</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Warner Bros. Korea</span>
+                    <span class="hl">💬 900</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/0PfwzZKzooQ" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="【超学生×四季凪アキラ】おこちゃま戦争 @歌ってみた">【超学生×四季凪アキラ】おこちゃま戦争 @歌ってみた</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Chogakusei Official</span>
+                    <span class="hl">💬 890</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/jMtc94xgUPQ" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="ザンギエフとダルシムがどうかしてる！？実写版「ストリートファイター」ティザー予告編が初公開！意外にいいかも？誇張しすぎでバカバカしい？メディアやネットの反応は？【海外の反応】">ザンギエフとダルシムがどうかしてる！？実写版「ストリートファイター」ティザー予告編が初公開！意外にいいかも？誇張しすぎでバカバカしい？メディアやネットの反応は？【海外の反応】</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">プク太の世界時事ニュース</span>
+                    <span class="hl">💬 876</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/KdPwIt2f0ZI" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="DAS KANN NICHT WAHR SEIN">DAS KANN NICHT WAHR SEIN</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">LUCREW</span>
+                    <span class="hl">💬 870</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/ujVuKdpOL74" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="The Lord of The Rings Trilogy - Official 25th Anniversary Teaser Trailer">The Lord of The Rings Trilogy - Official 25th Anniversary Teaser Trailer</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">IGN</span>
+                    <span class="hl">💬 835</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/fX9r3zWpIZQ" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="라인전을 깨달은사람">라인전을 깨달은사람</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">랄로</span>
+                    <span class="hl">💬 830</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/y3qvv_eIL7g" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="TÁ PODRE? SAIU O TRAILER DE STREET FIGHTER! ">TÁ PODRE? SAIU O TRAILER DE STREET FIGHTER! </div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Linhagem Geek</span>
+                    <span class="hl">💬 779</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/i4sqxJ1FXF4" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Voici Mes BASES SECRETES Sur Steal A Brainrot !">Voici Mes BASES SECRETES Sur Steal A Brainrot !</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Toinelag Gaming</span>
+                    <span class="hl">💬 694</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/M3IVifxXDvs" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Lartiste x Nej x Benny Adam x Bnet Oudaden - Hadak Zine (Clip Officiel)">Lartiste x Nej x Benny Adam x Bnet Oudaden - Hadak Zine (Clip Officiel)</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Lartiste</span>
+                    <span class="hl">💬 665</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/mjtYzJ1FgjM" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="ROBLOX 跑酷，但每過20秒就有一個新詛咒！最後同時4個詛咒，你還可以全破?!【Obby But You're Cursed - 有感筆電】">ROBLOX 跑酷，但每過20秒就有一個新詛咒！最後同時4個詛咒，你還可以全破?!【Obby But You're Cursed - 有感筆電】</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">有感筆電 Daptoper</span>
+                    <span class="hl">💬 648</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/ZDo1P6Yw3xo" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="O NATAL ESTÁ CHEGANDO NO 99 NOITES NA FLORESTA 🎅🎄">O NATAL ESTÁ CHEGANDO NO 99 NOITES NA FLORESTA 🎅🎄</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">TEODORO</span>
+                    <span class="hl">💬 628</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/eOFC2YUVauM" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="New NORTH POLE UPDATE + Festive Lucky Blocks!">New NORTH POLE UPDATE + Festive Lucky Blocks!</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">CaylusBlox</span>
+                    <span class="hl">💬 600</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/7FcV5Tt3tug" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="HACKER OR WHAT! | JONATHAN IS BACK!! | BGMI + Hero Xtreme 125R & 160R 4V Feature Check">HACKER OR WHAT! | JONATHAN IS BACK!! | BGMI + Hero Xtreme 125R & 160R 4V Feature Check</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">JONATHAN GAMING</span>
+                    <span class="hl">💬 540</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/YT3QHpA7wNA" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Die Game Awards waren irre: neue Spiele, Remakes, Fortsetzungen & Grafik-Kracher! - Trailer-Rotation">Die Game Awards waren irre: neue Spiele, Remakes, Fortsetzungen & Grafik-Kracher! - Trailer-Rotation</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">GameStar</span>
+                    <span class="hl">💬 446</span>
+                </div>
+            </div>
+        </div>
+        </div></div>
+            <div id="brands" class="tab"><div class="grid">
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/_iytMHw6uJY" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Powering Chile's Renewable Future | Megapack">Powering Chile's Renewable Future | Megapack</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Tesla</span>
+                    <span class="hl">👁️ 45.2K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/x8c965ezpq8" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Model X opens the door for you">Model X opens the door for you</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Tesla</span>
+                    <span class="hl">👁️ 183.7K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/FwqPI15nPjc" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Hot wings">Hot wings</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Tesla</span>
+                    <span class="hl">👁️ 129.0K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/ZAOKRG48wwU" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Smaller and Better... Insta360 Go Ultra">Smaller and Better... Insta360 Go Ultra</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Unbox Therapy</span>
+                    <span class="hl">👁️ 641.7K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/5U_sK1RZNDU" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Don't Leave Home Without One...">Don't Leave Home Without One...</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Unbox Therapy</span>
+                    <span class="hl">👁️ 1.1M</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/OJedJTHSvAM" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="World's First Smart Color E-ink Frame - Bloomin8 Smart Frame @BLOOMIN8  #Bloomin8 #EinkCanvas">World's First Smart Color E-ink Frame - Bloomin8 Smart Frame @BLOOMIN8  #Bloomin8 #EinkCanvas</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Unbox Therapy</span>
+                    <span class="hl">👁️ 1.4M</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/rcd_SQZDlnk" loading="lazy" allowfullscreen></iframe></div>
             <div class="info">
                 <div class="title" title="Starship | Tenth Flight Test">Starship | Tenth Flight Test</div>
                 <div class="meta">
-                    <span>SpaceX</span>
-                    <span>👁️ 1.4M</span>
-                </div>
-            </div>
-        </div>
-        </div></div>
-            <div id="creators" class="tab-content"><div class="grid">
-        <div class="card">
-            <div class="video-wrapper">
-                <iframe src="https://www.youtube.com/embed/{'kind': 'youtube#video', 'videoId': 'fO5FwBcCJBY'}" loading="lazy" allowfullscreen></iframe>
-            </div>
-            <div class="info">
-                <div class="title" title="Would You Date Him for $10,000?">Would You Date Him for $10,000?</div>
-                <div class="meta">
-                    <span>MrBeast</span>
-                    <span>👁️ 41.3M</span>
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">SpaceX</span>
+                    <span class="hl">👁️ 1.4M</span>
                 </div>
             </div>
         </div>
         
         <div class="card">
-            <div class="video-wrapper">
-                <iframe src="https://www.youtube.com/embed/{'kind': 'youtube#video', 'videoId': 'sfyL4BswUeE'}" loading="lazy" allowfullscreen></iframe>
+            <div class="vid"><iframe src="https://www.youtube.com/embed/BYTE4MtR0do" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Fram2 Polar Orbit Views">Fram2 Polar Orbit Views</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">SpaceX</span>
+                    <span class="hl">👁️ 162.4K</span>
+                </div>
             </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/Pn6e1O5bEyA" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Starship | Seventh Flight Test">Starship | Seventh Flight Test</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">SpaceX</span>
+                    <span class="hl">👁️ 1.4M</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/HGp005A-2mM" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Get your focus back with downtime. Tip from Garryn at the Apple Store. #Shorts">Get your focus back with downtime. Tip from Garryn at the Apple Store. #Shorts</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Apple</span>
+                    <span class="hl">👁️ 48.2K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/M3wMuVJpauM" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Engrave your Memoji on AirPods. Tip from Garryn at the Apple Store. #Shorts">Engrave your Memoji on AirPods. Tip from Garryn at the Apple Store. #Shorts</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Apple</span>
+                    <span class="hl">👁️ 72.9K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/gLhwEXW2-7M" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Apple Pay | Outrun | Apple">Apple Pay | Outrun | Apple</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Apple</span>
+                    <span class="hl">👁️ 104.5K</span>
+                </div>
+            </div>
+        </div>
+        </div></div>
+            <div id="creators" class="tab"><div class="grid">
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/sfyL4BswUeE" loading="lazy" allowfullscreen></iframe></div>
             <div class="info">
                 <div class="title" title="Smartphone Awards 2025!">Smartphone Awards 2025!</div>
                 <div class="meta">
-                    <span>Marques Brownlee</span>
-                    <span>👁️ 3.6M</span>
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Marques Brownlee</span>
+                    <span class="hl">👁️ 3.7M</span>
                 </div>
             </div>
         </div>
         
         <div class="card">
-            <div class="video-wrapper">
-                <iframe src="https://www.youtube.com/embed/{'kind': 'youtube#video', 'videoId': '_GI9-J-sE5k'}" loading="lazy" allowfullscreen></iframe>
+            <div class="vid"><iframe src="https://www.youtube.com/embed/Mb6H7trzMfI" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Driving Xiaomi's Electric Car: Are we Cooked?">Driving Xiaomi's Electric Car: Are we Cooked?</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Marques Brownlee</span>
+                    <span class="hl">👁️ 7.4M</span>
+                </div>
             </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/Qqyp00JPJZI" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title=""Siri Isn't That Bad"">"Siri Isn't That Bad"</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Marques Brownlee</span>
+                    <span class="hl">👁️ 1.8M</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/oEdYMZBo-UM" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="💖 CUTE MINI CRAFTS 📦 Fun Paper & Cardboard DIY Ideas! 🎨">💖 CUTE MINI CRAFTS 📦 Fun Paper & Cardboard DIY Ideas! 🎨</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">5-Minute Crafts</span>
+                    <span class="hl">👁️ 20.6K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/fcBGcadA2NA" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="💞 EASY BARBIE DIY 🎨 Cute Crafts & Doll Makeover Ideas! ✨">💞 EASY BARBIE DIY 🎨 Cute Crafts & Doll Makeover Ideas! ✨</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">5-Minute Crafts</span>
+                    <span class="hl">👁️ 55.5K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/vNuNDGqGQKk" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="🌀 TOP FIDGETS 🎨 Make Satisfying & Stress Relief Crafts at Home 🌟">🌀 TOP FIDGETS 🎨 Make Satisfying & Stress Relief Crafts at Home 🌟</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">5-Minute Crafts</span>
+                    <span class="hl">👁️ 121.6K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/fO5FwBcCJBY" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Would You Date Him for $10,000?">Would You Date Him for $10,000?</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">MrBeast</span>
+                    <span class="hl">👁️ 44.6M</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/U-x6KxH1kB4" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="How Many People to Pull a Plane?">How Many People to Pull a Plane?</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">MrBeast</span>
+                    <span class="hl">👁️ 24.2M</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/8bMh8azh3CY" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="100 Pilots Fight For A Private Jet">100 Pilots Fight For A Private Jet</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">MrBeast</span>
+                    <span class="hl">👁️ 80.0M</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/_GI9-J-sE5k" loading="lazy" allowfullscreen></iframe></div>
             <div class="info">
                 <div class="title" title="What’s the best position to sleep in? - Rachel Marie E. Salas">What’s the best position to sleep in? - Rachel Marie E. Salas</div>
                 <div class="meta">
-                    <span>TED-Ed</span>
-                    <span>👁️ 369.1K</span>
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">TED-Ed</span>
+                    <span class="hl">👁️ 415.6K</span>
                 </div>
             </div>
         </div>
         
         <div class="card">
-            <div class="video-wrapper">
-                <iframe src="https://www.youtube.com/embed/{'kind': 'youtube#video', 'videoId': 'eIBEK-_NMJc'}" loading="lazy" allowfullscreen></iframe>
+            <div class="vid"><iframe src="https://www.youtube.com/embed/3ezPMAoxSbw" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Scientists still don't know the answer to this infamous question - Charles Wallace & Dan Kwartler">Scientists still don't know the answer to this infamous question - Charles Wallace & Dan Kwartler</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">TED-Ed</span>
+                    <span class="hl">👁️ 271.0K</span>
+                </div>
             </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/zrjhaYc-9pg" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="What does it take to be a great performer? | Think Like A Musician">What does it take to be a great performer? | Think Like A Musician</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">TED-Ed</span>
+                    <span class="hl">👁️ 58.3K</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/eIBEK-_NMJc" loading="lazy" allowfullscreen></iframe></div>
             <div class="info">
                 <div class="title" title="Primitive Technology: Grate furnace, wood fired smelting experiment">Primitive Technology: Grate furnace, wood fired smelting experiment</div>
                 <div class="meta">
-                    <span>Primitive Technology</span>
-                    <span>👁️ 1.1M</span>
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Primitive Technology</span>
+                    <span class="hl">👁️ 1.1M</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/UqJHfTkvVY4" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Primitive Technology: Wood ash & crushed terracotta mortar">Primitive Technology: Wood ash & crushed terracotta mortar</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Primitive Technology</span>
+                    <span class="hl">👁️ 1.6M</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid"><iframe src="https://www.youtube.com/embed/y8o7qkmiDso" loading="lazy" allowfullscreen></iframe></div>
+            <div class="info">
+                <div class="title" title="Primitive Technology: Double water bellows">Primitive Technology: Double water bellows</div>
+                <div class="meta">
+                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Primitive Technology</span>
+                    <span class="hl">👁️ 1.1M</span>
                 </div>
             </div>
         </div>
         </div></div>
         </div>
-
         <script>
-            function openTab(evt, tabName) {
-                var i, tabcontent, tablinks;
-                tabcontent = document.getElementsByClassName("tab-content");
-                for (i = 0; i < tabcontent.length; i++) {
-                    tabcontent[i].style.display = "none";
-                }
-                tablinks = document.getElementsByClassName("tab-btn");
-                for (i = 0; i < tablinks.length; i++) {
-                    tablinks[i].className = tablinks[i].className.replace(" active", "");
-                }
-                document.getElementById(tabName).style.display = "block";
-                evt.currentTarget.className += " active";
+            function show(id, btn) {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+                document.getElementById(id).classList.add('active');
+                btn.classList.add('active');
             }
         </script>
     </body>
