@@ -1,12 +1,12 @@
 import os
 import datetime
-import re # 用于解析视频时长正则
+import re
 from googleapiclient.discovery import build
 
 # --- 1. 配置区域 ---
 API_KEY = os.environ.get("YOUTUBE_API_KEY")
 
-# 【名单 A】品牌区 (Brand Zone) - 保持省流模式
+# 【名单 A】品牌区 (Brand Zone)
 BRAND_CHANNELS = [
     'UCE_M8A5yxnLfW0KghEeajjw', # Apple
     'UCL8RlvQSa4YEj74wLBSku-A', # Nike
@@ -39,20 +39,22 @@ def get_youtube_service():
     if not API_KEY: return None
     return build('youtube', 'v3', developerKey=API_KEY)
 
-# --- 辅助功能：解析时长 ---
+# --- 辅助功能 ---
 def get_seconds(duration_str):
-    """把 PT1H2M30S 格式转换为秒数"""
     if not duration_str: return 0
-    # 正则匹配
     match = re.match(r'PT((?P<hours>\d+)H)?((?P<minutes>\d+)M)?((?P<seconds>\d+)S)?', duration_str)
     if not match: return 0
-    
     time_data = match.groupdict()
     hours = int(time_data['hours'] or 0)
     minutes = int(time_data['minutes'] or 0)
     seconds = int(time_data['seconds'] or 0)
-    
     return hours * 3600 + minutes * 60 + seconds
+
+def get_beijing_time_str():
+    """获取北京时间 (UTC+8) 的日期字符串"""
+    utc_now = datetime.datetime.utcnow()
+    beijing_now = utc_now + datetime.timedelta(hours=8)
+    return beijing_now.strftime("%Y-%m-%d")
 
 # --- 核心逻辑 1: 智能分拣全球热门 ---
 def fetch_filtered_global_pool(youtube):
@@ -60,65 +62,44 @@ def fetch_filtered_global_pool(youtube):
     raw_videos = []
     seen_ids = set()
     
-    # 1. 第一步：海量抓取 (每个国家抓前20，总量约200+)
+    # 1. 第一步：海量抓取
     for region in TARGET_REGIONS:
         try:
-            # 必须请求 contentDetails 以获取时长和分类ID
             res = youtube.videos().list(
                 chart='mostPopular',
                 regionCode=region,
                 part='snippet,statistics,contentDetails', 
                 maxResults=20
             ).execute()
-            
             for item in res['items']:
                 if item['id'] not in seen_ids:
                     raw_videos.append(item)
                     seen_ids.add(item['id'])
-        except:
-            pass
-
-    print(f"原始视频池: {len(raw_videos)} 个，开始执行分桶策略...")
+        except: pass
 
     # 2. 第二步：定义三个桶
-    bucket_music = []         # MV (Cat 10) -> 目标 10个
-    bucket_entertainment = [] # 娱乐/挑战 (Cat 24) -> 目标 5个
-    bucket_content = []       # 优质内容 (Tech, Vlog, etc) -> 目标 35个
+    bucket_music = []         # MV (Cat 10)
+    bucket_entertainment = [] # 娱乐 (Cat 24)
+    bucket_content = []       # 优质内容 (其他)
     
     # 3. 第三步：清洗与分拣
     for v in raw_videos:
-        # A. 过滤 Shorts (时长 < 60秒)
+        # A. 过滤 Shorts (<60s)
         duration = v['contentDetails'].get('duration', '')
-        if get_seconds(duration) < 60:
-            continue # 直接丢弃
+        if get_seconds(duration) < 60: continue
 
-        # B. 过滤 黑名单分类
-        # 1:Film(动画), 20:Gaming, 25:News
+        # B. 过滤 黑名单 (动画/游戏/新闻)
         cat_id = v['snippet'].get('categoryId', '0')
-        if cat_id in ['1', '20', '25']: 
-            continue # 直接丢弃
+        if cat_id in ['1', '20', '25']: continue
         
-        # C. 填充数据 (为了排序)
+        # C. 填充数据
         v['like_count'] = int(v['statistics'].get('likeCount', 0))
         v['comment_count'] = int(v['statistics'].get('commentCount', 0))
         
         # D. 分桶
         if cat_id == '10': # Music
             bucket_music.append(v)
-        elif cat_id == '24': # Entertainment (包含挑战类)
+        elif cat_id == '24': # Entertainment
             bucket_entertainment.append(v)
-        else: # 其他优质分类 (Tech, People, Education, Sports...)
-            bucket_content.append(v)
-
-    # 4. 第四步：按数据排序并截断 (配额制)
-    # 音乐取 Top 10
-    bucket_music.sort(key=lambda x: x['like_count'], reverse=True)
-    final_music = bucket_music[:10]
-    
-    # 娱乐取 Top 5
-    bucket_entertainment.sort(key=lambda x: x['like_count'], reverse=True)
-    final_entertainment = bucket_entertainment[:5]
-    
-    # 内容取 Top 35 (甚至更多，填满剩余)
-    bucket_content.sort(key=lambda x: x['like_count'], reverse=True)
-    final_content = bucket_conte
+        else: # Tech, Vlog, etc
+            bucket_co
