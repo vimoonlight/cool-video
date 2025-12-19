@@ -89,7 +89,7 @@ def attach_hot_comment(youtube, video_item):
             raw = res['items'][0]['snippet']['topLevelComment']['snippet']['textDisplay']
             raw = html.unescape(raw).replace('\n', ' ')
             zh = translate_text(raw)
-            if len(zh) > 30: zh = zh[:28] + "..."
+            if len(zh) > 25: zh = zh[:23] + "..."
             video_item['hot_comment'] = zh
         else: video_item['hot_comment'] = ""
     except: video_item['hot_comment'] = ""
@@ -105,7 +105,7 @@ def fetch_categorized_global_pool(youtube):
         try:
             res = youtube.videos().list(
                 chart='mostPopular', regionCode=code,
-                part='snippet,statistics,contentDetails', maxResults=30
+                part='snippet,statistics,contentDetails', maxResults=35
             ).execute()
             for item in res['items']:
                 if item['id'] not in seen_ids:
@@ -134,8 +134,8 @@ def fetch_categorized_global_pool(youtube):
         if cat in ['1', '20', '25']: continue
         
         v['like_cnt'] = int(v['statistics'].get('likeCount', 0))
-        v['comm_cnt'] = int(v['statistics'].get('commentCount', 0))
         v['view_cnt'] = int(v['statistics'].get('viewCount', 0))
+        v['comm_cnt'] = int(v['statistics'].get('commentCount', 0))
         cid = v['snippet']['channelId']
         subs = subs_map.get(cid, 10000000)
         
@@ -145,6 +145,7 @@ def fetch_categorized_global_pool(youtube):
         thumbs = v['snippet']['thumbnails']
         v['cover'] = thumbs.get('maxres', thumbs.get('high', thumbs.get('medium')))['url']
         
+        # 黑马判定
         if viral_ratio > 3.0 and v['view_cnt'] > 50000:
             bucket_breakout.append(v)
         elif cat == '10': bucket_music.append(v)
@@ -159,10 +160,9 @@ def fetch_categorized_global_pool(youtube):
     bucket_content.sort(key=lambda x: x['like_cnt'], reverse=True)
     
     liked_set = {
-        'breakout': bucket_breakout[:4],
-        'music': bucket_music[:6],
-        'ent': bucket_ent[:4],
-        'content': bucket_content[:30]
+        'music': bucket_music[:7],
+        'ent': bucket_ent[:5],
+        'content': bucket_content[:35]
     }
 
     bucket_music.sort(key=lambda x: x['comm_cnt'], reverse=True)
@@ -170,20 +170,22 @@ def fetch_categorized_global_pool(youtube):
     bucket_content.sort(key=lambda x: x['comm_cnt'], reverse=True)
 
     discuss_set = {
-        'music': bucket_music[:6],
-        'ent': bucket_ent[:4],
-        'content': bucket_content[:30]
+        'music': bucket_music[:7],
+        'ent': bucket_ent[:5],
+        'content': bucket_content[:35]
     }
     
+    # 5. 获取神评论
     print("正在获取神评论...")
-    all_selected = liked_set['breakout'] + liked_set['music'] + liked_set['ent'] + liked_set['content']
+    final_breakout = bucket_breakout[:20] 
+    all_selected = final_breakout + liked_set['music'] + liked_set['ent'] + liked_set['content']
     seen_vids = set()
     for v in all_selected:
         if v['id'] not in seen_vids:
             attach_hot_comment(youtube, v)
             seen_vids.add(v['id'])
         
-    return liked_set, discuss_set
+    return final_breakout, liked_set, discuss_set
 
 def fetch_channel_videos(youtube, channel_ids):
     videos = []
@@ -218,8 +220,8 @@ def fetch_channel_videos(youtube, channel_ids):
         except: pass
     return final_videos
 
-# --- 网页生成 ---
-def generate_html(liked_set, discuss_set, brands, creators):
+# --- 网页生成 (高级灰 + 吸顶导航) ---
+def generate_html(breakout, liked_set, discuss_set, brands, creators):
     today_str = get_beijing_time_str()
     
     html = f"""
@@ -230,12 +232,13 @@ def generate_html(liked_set, discuss_set, brands, creators):
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>VISION | Design Edition</title>
         <style>
+            /* 1. 配色方案：高级灰 (Ref: Awwwards) */
             :root {{ 
                 --bg: #F2F2F2; 
                 --text: #111; 
                 --card-bg: #fff;
                 --accent: #000;
-                --shadow: 0 4px 20px rgba(0,0,0,0.06);
+                --shadow: 0 10px 30px rgba(0,0,0,0.06);
             }}
             
             body {{ 
@@ -243,11 +246,12 @@ def generate_html(liked_set, discuss_set, brands, creators):
                 color: var(--text); 
                 font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
                 margin: 0; 
-                padding-bottom: 150px; 
+                padding-bottom: 100px; 
             }}
             
+            /* 2. 头部：超大字体 (Ref: OBYS) */
             header {{ 
-                padding: 100px 40px 60px; 
+                padding: 100px 20px 60px; 
                 text-align: center; 
             }}
             h1 {{ 
@@ -268,15 +272,21 @@ def generate_html(liked_set, discuss_set, brands, creators):
                 color: #666;
             }}
             
-            .nav {{ 
-                display: flex; 
-                justify-content: center; 
-                gap: 15px; 
-                padding: 20px; 
-                position: sticky; 
-                top: 20px; 
-                z-index: 99; 
+            /* 3. 吸顶导航栏 (Sticky + Gallery Style) */
+            .nav-container {{
+                position: sticky;
+                top: 0;
+                z-index: 999;
+                background: rgba(242, 242, 242, 0.95); /* 与背景色一致的毛玻璃 */
+                backdrop-filter: blur(10px);
+                border-bottom: 1px solid #ddd;
+                padding: 20px 0;
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+                overflow-x: auto;
             }}
+            
             .btn {{ 
                 background: #fff; 
                 border: 1px solid #ddd; 
@@ -286,68 +296,54 @@ def generate_html(liked_set, discuss_set, brands, creators):
                 padding: 12px 24px; 
                 font-weight: 700; 
                 border-radius: 50px;
-                box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+                box-shadow: 0 4px 10px rgba(0,0,0,0.05);
                 transition: 0.3s; 
                 text-transform: uppercase;
+                white-space: nowrap;
             }}
-            .btn:hover, .btn.active {{ 
+            .btn:hover {{ 
                 background: #000; 
                 color: #fff; 
                 border-color: #000;
                 transform: translateY(-2px);
             }}
             
-            .container {{ max-width: 1600px; margin: 0 auto; padding: 20px; }}
-            .tab {{ display: none; animation: fade 0.6s; }}
+            /* 选中状态 */
+            .btn.active {{ 
+                background: #000; 
+                color: #fff; 
+                border-color: #000;
+            }}
+            
+            /* 黑马榜按钮特殊样式 */
+            .btn-breakout {{ font-weight: 900; letter-spacing: 0.5px; }}
+
+            .container {{ max-width: 1600px; margin: 0 auto; padding: 40px 20px; min-height: 80vh; }}
+            .tab {{ display: none; animation: fade 0.5s; }}
             .tab.active {{ display: block; }}
-            @keyframes fade {{ from {{opacity:0; transform:translateY(20px);}} to {{opacity:1; transform:translateY(0);}} }}
+            @keyframes fade {{ from {{opacity:0; transform:translateY(15px);}} to {{opacity:1; transform:translateY(0);}} }}
             
-            /* 【注意】这里使用了双大括号 {{ }} 来转义 CSS */
-            .breakout-section {{
-                background: #000;
-                color: #fff;
-                padding: 60px 40px;
-                border-radius: 20px;
-                margin-bottom: 80px;
-            }}
-            .breakout-header {{
-                font-size: 3rem;
-                font-weight: 900;
-                text-transform: uppercase;
-                letter-spacing: -1px;
-                margin-bottom: 40px;
-                border-bottom: 2px solid #333;
-                padding-bottom: 20px;
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-end;
-            }}
-            .breakout-tag {{ font-size: 1rem; font-weight: 600; color: #ffeb3b; }}
-            
+            /* 分区标题 (黑色加粗) */
             .section-title {{ 
-                font-size: 2.5rem; 
-                font-weight: 800; 
-                color: #000; 
-                margin: 80px 0 40px;
-                text-transform: uppercase;
+                display: flex; align-items: center; margin: 60px 0 30px; 
+                font-size: 2rem; font-weight: 900; color: #000;
                 letter-spacing: -1px;
-                border-left: 8px solid #000;
-                padding-left: 20px;
-                line-height: 1;
             }}
+            .section-title::before {{ content: ''; width: 8px; height: 32px; background: #000; margin-right: 15px; }}
             
-            .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 40px; }}
+            .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 40px 30px; }}
             
+            /* 4. 卡片设计：白卡片 + 悬浮徽章 */
             .card {{ 
-                background: var(--card-bg); 
+                position: relative; 
                 border-radius: 16px; 
                 overflow: hidden; 
+                background: var(--card-bg); 
+                transition: transform 0.3s ease; 
                 box-shadow: var(--shadow);
-                transition: transform 0.3s ease;
-                display: flex;
-                flex-direction: column;
+                display: flex; flex-direction: column;
             }}
-            .card:hover {{ transform: translateY(-8px); box-shadow: 0 15px 40px rgba(0,0,0,0.1); }}
+            .card:hover {{ transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }}
             
             .cover-wrap {{ 
                 position: relative; 
@@ -362,115 +358,103 @@ def generate_html(liked_set, discuss_set, brands, creators):
             }}
             .card:hover .cover-wrap img {{ transform: scale(1.05); }}
             
-            .badges {{ position: absolute; top: 15px; left: 15px; display: flex; gap: 8px; z-index: 2; }}
-            .badge {{ 
-                background: rgba(255,255,255,0.9); 
-                color: #000; 
-                padding: 6px 12px; 
-                border-radius: 30px; 
-                font-size: 0.75rem; 
-                font-weight: 700; 
-                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            }}
-            
             .play-btn {{ 
                 position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); 
                 width: 60px; height: 60px; 
-                background: rgba(0,0,0,0.7); 
-                border-radius: 50%; 
+                background: rgba(255,255,255,0.8); 
+                border-radius: 50%; backdrop-filter: blur(5px); 
                 display: flex; align-items: center; justify-content: center; 
-                opacity: 0; transition: 0.3s;
-                border: 2px solid #fff;
+                opacity: 0; transition: all 0.3s;
+                box-shadow: 0 10px 20px rgba(0,0,0,0.2);
             }}
-            .play-btn::after {{ content: ''; border: 10px solid transparent; border-left: 16px solid #fff; margin-left: 6px; }}
-            .cover-wrap:hover .play-btn {{ opacity: 1; transform: translate(-50%, -50%) scale(1); }}
+            .play-btn::after {{ content: ''; border: 10px solid transparent; border-left: 16px solid #000; margin-left: 6px; }}
+            .card:hover .play-btn {{ opacity: 1; transform: translate(-50%, -50%) scale(1); }}
 
-            .info {{ padding: 25px; flex-grow: 1; display: flex; flex-direction: column; }}
+            /* 悬浮徽章 */
+            .badge-top-right {{ 
+                position: absolute; top: 15px; right: 15px; 
+                display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+                z-index: 5;
+            }}
+            .badge-item {{ 
+                background: rgba(255,255,255,0.95); 
+                padding: 6px 12px; border-radius: 20px; 
+                font-size: 0.75rem; color: #000; 
+                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                font-weight: 700; 
+                display: flex; align-items: center; gap: 5px; 
+            }}
             
-            .title-zh {{ 
-                font-weight: 800; font-size: 1.1rem; color: #000; 
-                margin-bottom: 6px; line-height: 1.3; 
-            }}
-            .title-org {{ 
-                font-size: 0.85rem; color: #888; margin-bottom: 15px; 
-                font-weight: 500; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
-            }}
+            .info {{ padding: 25px; display: flex; flex-direction: column; flex-grow: 1; }}
+            .title-zh {{ font-weight: 800; font-size: 1.1rem; color: #000; margin-bottom: 6px; line-height: 1.3; }}
+            .title-org {{ font-size: 0.85rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 15px; }}
             
             .meta-row {{ 
                 margin-top: auto; 
                 display: flex; justify-content: space-between; align-items: center; 
-                border-top: 1px solid #eee; padding-top: 15px; 
-                font-size: 0.8rem; color: #555; font-weight: 600;
+                border-top: 1px solid #f0f0f0; padding-top: 15px;
+                font-size: 0.8rem; color: #666; font-weight: 600;
             }}
+            .channel-name {{ display: flex; align-items: center; gap: 6px; }}
+            .channel-name::before {{ content:''; width:8px; height:8px; background:#000; border-radius:50%; }}
             
             .comment {{ 
-                background: #f9f9f9; padding: 12px; border-radius: 8px; 
-                margin-top: 15px; font-size: 0.85rem; color: #444; 
-                font-style: italic; line-height: 1.5; 
+                font-size: 0.85rem; color: #555; background: #f9f9f9; 
+                padding: 12px; border-radius: 8px; line-height: 1.5; 
+                font-style: italic; margin-top: 15px;
             }}
-            
-            /* 【修复点】黑马榜样式的双大括号 */
-            .breakout-section .card {{ background: #1a1a1a; color: #fff; border: 1px solid #333; }}
-            .breakout-section .title-zh {{ color: #fff; }}
-            .breakout-section .title-org {{ color: #888; }}
-            .breakout-section .meta-row {{ border-color: #333; color: #aaa; }}
-            .breakout-section .comment {{ background: #222; color: #ccc; }}
 
         </style>
     </head>
     <body>
+        <!-- 头部 -->
         <header>
             <h1>VISION<br>DAILY</h1>
             <div class="date">{today_str} • DESIGN EDITION</div>
         </header>
         
-        <nav class="nav">
-            <button class="btn active" onclick="show('liked', this)">Top Liked</button>
+        <!-- 吸顶导航 -->
+        <nav class="nav-container">
+            <button class="btn btn-breakout active" onclick="show('breakout', this)">🚀 Breakout Hits</button>
+            <button class="btn" onclick="show('liked', this)">Top Liked</button>
             <button class="btn" onclick="show('discussed', this)">Top Discussed</button>
             <button class="btn" onclick="show('brands', this)">Brand Zone</button>
             <button class="btn" onclick="show('creators', this)">Creator Zone</button>
         </nav>
 
         <div class="container">
-            
-            <!-- 1. Global Top Liked (含黑马) -->
-            <div id="liked" class="tab active">
-                <div class="breakout-section">
-                    <div class="breakout-header">
-                        <div>🚀 Breakout Hits</div>
-                        <div class="breakout-tag">RISING STARS</div>
-                    </div>
-                    <div class="grid">
-                        {render_cards(liked_set['breakout'], 'breakout', 'like')}
-                    </div>
-                </div>
+            <!-- 1. Breakout Hits (黑马) -->
+            <div id="breakout" class="tab active">
+                <div class="section-title">🚀 Viral & Trending</div>
+                <div class="grid">{render_cards(breakout, 'breakout')}</div>
+            </div>
 
-                <div class="section-title">🎵 Music & Visuals</div>
-                <div class="grid">{render_cards(liked_set['music'], 'music', 'like')}</div>
-                
+            <!-- 2. Liked (分层) -->
+            <div id="liked" class="tab">
+                <div class="section-title">🎵 Music</div>
+                <div class="grid">{render_cards(liked_set['music'], 'music')}</div>
                 <div class="section-title">🎪 Entertainment</div>
-                <div class="grid">{render_cards(liked_set['ent'], 'ent', 'like')}</div>
-                
-                <div class="section-title">💡 Deep Content</div>
-                <div class="grid">{render_cards(liked_set['content'], 'content', 'like')}</div>
+                <div class="grid">{render_cards(liked_set['ent'], 'ent')}</div>
+                <div class="section-title">💡 Deep Dive</div>
+                <div class="grid">{render_cards(liked_set['content'], 'content')}</div>
             </div>
 
-            <!-- 2. Global Top Discussed -->
+            <!-- 3. Discussed (分层) -->
             <div id="discussed" class="tab">
-                <div class="section-title">💬 Most Discussed</div>
-                <div class="grid">{render_cards(discuss_set['content'], 'content', 'comm')}</div>
+                <div class="section-title">💬 Hot Discussions</div>
+                <div class="grid">{render_cards(discuss_set['content'], 'content')}</div>
             </div>
 
-            <!-- 3. Brand Zone -->
+            <!-- 4. Brands -->
             <div id="brands" class="tab">
                 <div class="section-title">💎 Brand Zone</div>
-                <div class="grid">{render_cards(brands, 'brand', 'view')}</div>
+                <div class="grid">{render_cards(brands, 'brand')}</div>
             </div>
             
-            <!-- 4. Creator Zone -->
+            <!-- 5. Creators -->
             <div id="creators" class="tab">
                 <div class="section-title">🎨 Creator Zone</div>
-                <div class="grid">{render_cards(creators, 'creator', 'view')}</div>
+                <div class="grid">{render_cards(creators, 'creator')}</div>
             </div>
         </div>
 
@@ -478,8 +462,11 @@ def generate_html(liked_set, discuss_set, brands, creators):
             function show(id, btn) {{
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+                
                 document.getElementById(id).classList.add('active');
                 btn.classList.add('active');
+                
+                window.scrollTo({{ top: 200, behavior: 'smooth' }});
             }}
             function play(wrap, id) {{
                 wrap.innerHTML = '<iframe src="https://www.youtube.com/embed/'+id+'?autoplay=1" allow="autoplay; fullscreen" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"></iframe>';
@@ -491,39 +478,45 @@ def generate_html(liked_set, discuss_set, brands, creators):
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html)
 
-def render_cards(videos, type, sort_key):
-    if not videos: return "<p style='color:#999; padding:20px'>Loading...</p>"
+def render_cards(videos, type):
+    if not videos: return "<p style='color:#666'>Searching...</p>"
     html = ""
     for v in videos:
         badges = ""
-        if 'region_flag' in v: badges += f"<div class='badge'>{v['region_flag']}</div>"
+        # 1. 地区标
+        if 'region_flag' in v: badges += f"<div class='badge-item'>{v['region_flag']} Region</div>"
+        # 2. 评论标
+        if v.get('hot_comment'): badges += f"<div class='badge-item'>💬 Hot</div>"
+        # 3. 黑马标
         if type == 'breakout' and 'viral_ratio' in v:
-             badges += f"<div class='badge'>⚡ {round(v['viral_ratio'], 1)}x</div>"
-        
+             badges += f"<div class='badge-item' style='color:#d35400'>⚡ {round(v['viral_ratio'], 1)}x Viral</div>"
+
+        # 评论文字
         comm = f"<div class='comment'>“ {v['hot_comment']} ”</div>" if v.get('hot_comment') else ""
-        
+
         s = v.get('statistics', {})
-        if sort_key == 'like': label = f"♥ {round(int(s.get('likeCount',0))/1000,1)}K"
-        elif sort_key == 'comm': label = f"💬 {round(int(s.get('commentCount',0))/1000,1)}K"
-        else: label = f"👁️ {round(int(s.get('viewCount',0))/1000,1)}K"
+        view_cnt = int(s.get('viewCount', 0))
+        label_view = f"{round(view_cnt/1000, 1)}K Views"
         
-        zh = v.get('title_dual', {}).get('zh', v['snippet']['title'])
-        org = v.get('title_dual', {}).get('org', '')
-        if zh == org: org = ""
+        t_zh = v.get('title_dual', {}).get('zh', v['snippet']['title'])
+        t_org = v.get('title_dual', {}).get('org', '')
+        if t_zh == t_org: t_org = ""
 
         html += f"""
         <div class="card">
             <div class="cover-wrap" onclick="play(this, '{v['id']}')">
                 <img src="{v.get('cover')}" loading="lazy">
-                <div class="badges">{badges}</div>
+                <div class="badge-top-right">
+                    {badges}
+                </div>
                 <div class="play-btn"></div>
             </div>
             <div class="info">
-                <div class="title-zh">{zh}</div>
-                <div class="title-org">{org}</div>
+                <div class="title-zh">{t_zh}</div>
+                <div class="title-org">{t_org}</div>
                 <div class="meta-row">
-                    <span>{v['snippet']['channelTitle']}</span>
-                    <span>{label}</span>
+                    <span class="channel-name">{v['snippet']['channelTitle']}</span>
+                    <span>{label_view}</span>
                 </div>
                 {comm}
             </div>
@@ -535,11 +528,11 @@ def main():
     youtube = get_youtube_service()
     if not youtube: return
     
-    liked_set, discuss_set = fetch_categorized_global_pool(youtube)
+    breakout, liked_set, discuss_set = fetch_categorized_global_pool(youtube)
     brands = fetch_channel_videos(youtube, BRAND_CHANNELS)
     creators = fetch_channel_videos(youtube, CREATOR_CHANNELS)
     
-    generate_html(liked_set, discuss_set, brands, creators)
+    generate_html(breakout, liked_set, discuss_set, brands, creators)
 
 if __name__ == "__main__":
     main()
