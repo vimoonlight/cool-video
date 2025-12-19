@@ -2,10 +2,11 @@ name: Update Video Website
 
 on:
   schedule:
-    # 稍微错开整点，避开 GitHub 服务器的高峰期
-    # 这里设置的是 UTC 22:15，约北京时间次日 06:15
-    - cron: '0 23 * * *'
-  workflow_dispatch: # 允许手动点击运行
+    - cron: '18 22 * * *' # 每天定时跑
+  workflow_dispatch:     # 允许手动按钮跑
+  push:                  # <--- 新增这行：一提交代码就跑
+    paths:
+      - 'main.py'        # <--- 指定：只有改了 main.py 才跑，改别的不管
 
 permissions:
   contents: write # 必须显式开启写权限
