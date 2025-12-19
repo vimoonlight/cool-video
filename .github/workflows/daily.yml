@@ -2,11 +2,13 @@ name: Update Video Website
 
 on:
   schedule:
-    - cron: '0 22 * * *' # 每天自动更新
-  workflow_dispatch:     # 允许手动更新
+    # 稍微错开整点，避开 GitHub 服务器的高峰期
+    # 这里设置的是 UTC 22:15，约北京时间次日 06:15
+    - cron: '15 22 * * *'
+  workflow_dispatch: # 允许手动点击运行
 
 permissions:
-  contents: write
+  contents: write # 必须显式开启写权限
 
 jobs:
   build:
@@ -32,6 +34,8 @@ jobs:
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
+          # 强制更新 index.html，即使内容变化不大
           git add index.html
-          git commit -m "Update content" || echo "No changes"
+          # 加上当前时间戳，确保每次运行都有 commit，防止 GitHub 觉得没变化而不更新
+          git commit -m "Auto-update: $(date)" || echo "No changes to commit"
           git push
