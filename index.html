@@ -15,30 +15,24 @@
             
             .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
             
-            /* 板块标题 */
             .section-header { display: flex; align-items: center; margin: 60px 0 30px; border-bottom: 1px solid #333; padding-bottom: 10px; }
             .section-title { font-size: 1.8rem; font-weight: 800; color: #fff; margin-right: 15px; }
             .section-tag { background: var(--accent); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
             
-            /* 网格布局 */
             .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
-            .grid-wide { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 30px; } /* 黑马榜卡片大一点 */
+            .grid-wide { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 30px; }
             
-            /* 高级悬浮卡片 */
             .card { position: relative; border-radius: 12px; overflow: hidden; background: #111; transition: transform 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
             .card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.5); }
             
-            /* 封面区域 */
             .cover-wrap { position: relative; padding-bottom: 56.25%; cursor: pointer; }
             .cover-wrap img { position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; transition: opacity 0.3s; }
             .card:hover .cover-wrap img { opacity: 0.8; }
             
-            /* 播放按钮 (居中) */
             .play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); opacity: 0; transition: all 0.3s; width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; }
             .play-btn::after { content: ''; border: 10px solid transparent; border-left: 16px solid #fff; margin-left: 6px; }
             .card:hover .play-btn { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
-            /* 右上角悬浮标 (Pinterest Style) */
             .badge-top-right { 
                 position: absolute; top: 12px; right: 12px; 
                 display: flex; flex-direction: column; gap: 6px; align-items: flex-end;
@@ -46,7 +40,6 @@
             }
             .badge-item { background: var(--glass); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; color: #fff; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1); font-weight: 500; display: flex; align-items: center; gap: 5px; }
             
-            /* 标题区域 */
             .meta-box { padding: 15px; }
             .title-zh { font-weight: 700; font-size: 1rem; color: #fff; margin-bottom: 4px; line-height: 1.4; }
             .title-org { font-size: 0.8rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -62,18 +55,17 @@
         </header>
 
         <div class="container">
-            
-            <!-- 1. 黑马榜 (Breakout) -->
+            <!-- 1. 黑马榜 -->
             <div class="section-header">
                 <div class="section-title">🚀 Breakout Hits</div>
-                <div class="section-tag">VIRAL & TRENDING</div>
+                <div class="section-tag">VIRAL</div>
             </div>
             <div class="grid-wide">
         <div class="card">
             <div class="cover-wrap" onclick="play(this, 'IOuOs9lVhnQ')">
                 <img src="https://i.ytimg.com/vi/IOuOs9lVhnQ/maxresdefault.jpg" loading="lazy">
                 <div class="badge-top-right">
-                    <div class='badge-item'>🇹🇼 Region</div><div class='badge-item' style='color:#ffdd59'>⚡ 4562.1x Viral</div>
+                    <div class='badge-item'>🇹🇼 Region</div><div class='badge-item' style='color:#ffdd59'>⚡ 4564.9x Viral</div>
                 </div>
                 <div class="play-btn"></div>
             </div>
@@ -90,7 +82,7 @@
             <div class="cover-wrap" onclick="play(this, '8_vLxZupcy8')">
                 <img src="https://i.ytimg.com/vi/8_vLxZupcy8/maxresdefault.jpg" loading="lazy">
                 <div class="badge-top-right">
-                    <div class='badge-item'>🇯🇵 Region</div><div class='badge-item' style='color:#ffdd59'>⚡ 410.3x Viral</div>
+                    <div class='badge-item'>🇯🇵 Region</div><div class='badge-item' style='color:#ffdd59'>⚡ 411.0x Viral</div>
                 </div>
                 <div class="play-btn"></div>
             </div>
@@ -98,7 +90,7 @@
                 <div class="title-zh">早上好</div>
                 <div class="title-org">GOOD MORNING</div>
                 <div class="channel-name">
-                    Release - Topic • 75.9K Views
+                    Release - Topic • 76.0K Views
                 </div>
             </div>
         </div>
@@ -107,7 +99,7 @@
             <div class="cover-wrap" onclick="play(this, 'UoKt7iCmwYE')">
                 <img src="https://i.ytimg.com/vi/UoKt7iCmwYE/maxresdefault.jpg" loading="lazy">
                 <div class="badge-top-right">
-                    <div class='badge-item'>🇰🇷 Region</div><div class='badge-item' style='color:#ffdd59'>⚡ 370.7x Viral</div>
+                    <div class='badge-item'>🇰🇷 Region</div><div class='badge-item' style='color:#ffdd59'>⚡ 370.9x Viral</div>
                 </div>
                 <div class="play-btn"></div>
             </div>
@@ -124,7 +116,7 @@
             <div class="cover-wrap" onclick="play(this, '9ImfgqmN5VU')">
                 <img src="https://i.ytimg.com/vi/9ImfgqmN5VU/maxresdefault.jpg" loading="lazy">
                 <div class="badge-top-right">
-                    <div class='badge-item'>🇫🇷 Region</div><div class='badge-item'>💬 订阅，感谢观看：）类似歌曲的播放列表...</div><div class='badge-item' style='color:#ffdd59'>⚡ 360.9x Viral</div>
+                    <div class='badge-item'>🇫🇷 Region</div><div class='badge-item'>💬 订阅，感谢观看：）类似歌曲的播放列表...</div><div class='badge-item' style='color:#ffdd59'>⚡ 361.0x Viral</div>
                 </div>
                 <div class="play-btn"></div>
             </div>
@@ -132,7 +124,7 @@
                 <div class="title-zh">警察 - 你的每一次呼吸（西班牙语字幕/歌词）</div>
                 <div class="title-org">The Police — Every Breath You Take (Sub. Español / Lyrics)</div>
                 <div class="channel-name">
-                    Richie Lyrics • 902.2K Views
+                    Richie Lyrics • 902.4K Views
                 </div>
             </div>
         </div>
@@ -141,7 +133,7 @@
             <div class="cover-wrap" onclick="play(this, '3AbjxMctQGY')">
                 <img src="https://i.ytimg.com/vi/3AbjxMctQGY/maxresdefault.jpg" loading="lazy">
                 <div class="badge-top-right">
-                    <div class='badge-item'>🇰🇷 Region</div><div class='badge-item' style='color:#ffdd59'>⚡ 150.7x Viral</div>
+                    <div class='badge-item'>🇰🇷 Region</div><div class='badge-item' style='color:#ffdd59'>⚡ 150.8x Viral</div>
                 </div>
                 <div class="play-btn"></div>
             </div>
@@ -149,7 +141,7 @@
                 <div class="title-zh">恋人</div>
                 <div class="title-org">LOVERS</div>
                 <div class="channel-name">
-                    Car, the Garden - Topic • 214.0K Views
+                    Car, the Garden - Topic • 214.1K Views
                 </div>
             </div>
         </div>
@@ -225,7 +217,7 @@
                 <div class="title-zh">Dekhlenge Saala 抒情视频 |乌斯塔德·巴加特·辛格·帕万·卡扬·哈里什·尚卡尔·德维·斯里·普拉萨德</div>
                 <div class="title-org">Dekhlenge Saala Lyrical Video | Ustaad Bhagat Singh | Pawan Kalyan | Harish Shankar| Devi Sri Prasad</div>
                 <div class="channel-name">
-                    Sony Music South • 25265.3K Views
+                    Sony Music South • 25266.5K Views
                 </div>
             </div>
         </div>
@@ -242,7 +234,7 @@
                 <div class="title-zh">BORDER 2（预告片）：Sunny Deol、Varun D、Diljit、Ahan |阿努拉格 S | JP Dutta，Bhushan K | 2026 年 1 月 23 日</div>
                 <div class="title-org">BORDER 2 (Teaser): Sunny Deol, Varun D, Diljit, Ahan | Anurag S | JP Dutta, Bhushan K | 23-Jan-2026</div>
                 <div class="channel-name">
-                    T-Series • 18167.0K Views
+                    T-Series • 18169.4K Views
                 </div>
             </div>
         </div>
@@ -259,7 +251,7 @@
                 <div class="title-zh">[COVER] DK X SEUNGKWAN - Die With A Smile (原曲：Lady Gaga、Bruno Mars)</div>
                 <div class="title-org">[COVER] DK X SEUNGKWAN - Die With A Smile (Original Song : Lady Gaga, Bruno Mars)</div>
                 <div class="channel-name">
-                    SEVENTEEN • 2244.2K Views
+                    SEVENTEEN • 2244.7K Views
                 </div>
             </div>
         </div>
@@ -276,7 +268,7 @@
                 <div class="title-zh">P 流行文化（音乐视频）KARAN AUJLA |伊基 |最新旁遮普语歌曲 2025</div>
                 <div class="title-org">P Pop Culture (MUSIC VIDEO) KARAN AUJLA | Ikky | Latest Punjabi Songs 2025</div>
                 <div class="channel-name">
-                    Karan Aujla • 3262.0K Views
+                    Karan Aujla • 3262.9K Views
                 </div>
             </div>
         </div>
@@ -293,7 +285,7 @@
                 <div class="title-zh">后街男孩 - 我想要那样（2025 版）</div>
                 <div class="title-org">Backstreet Boys - I Want It That Way (2025 Version)</div>
                 <div class="channel-name">
-                    Backstreet Boys • 2267.5K Views
+                    Backstreet Boys • 2269.4K Views
                 </div>
             </div>
         </div>
@@ -310,7 +302,7 @@
                 <div class="title-zh">DENNY CAKNAN - TUNGGAL EKA（官方音乐视频）</div>
                 <div class="title-org">DENNY CAKNAN - TUNGGAL EKA  (Official Music Video)</div>
                 <div class="channel-name">
-                    DENNY CAKNAN • 1614.3K Views
+                    DENNY CAKNAN • 1615.8K Views
                 </div>
             </div>
         </div>
@@ -330,7 +322,7 @@
                 <div class="title-zh">怪奇物语 5 |第 2 卷预告片 | Netflix</div>
                 <div class="title-org">Stranger Things 5 | Volume 2 Trailer | Netflix</div>
                 <div class="channel-name">
-                    Netflix • 13362.9K Views
+                    Netflix • 13364.8K Views
                 </div>
             </div>
         </div>
@@ -344,10 +336,10 @@
                 <div class="play-btn"></div>
             </div>
             <div class="meta-box">
-                <div class="title-zh">45 官方预告片 卡纳达语 | Shivarajkumar 博士 |乌彭德拉 |拉杰·B·谢蒂 | Raj B Shetty阿琼·贾尼亚 |苏拉吉</div>
+                <div class="title-zh">45 官方预告片 卡纳达语 | Shivarajkumar 博士 |乌彭德拉 |拉杰·B·谢蒂 | Raj B Shetty阿琼·贾尼亚 |苏拉杰</div>
                 <div class="title-org">45 Official Trailer Kannada | Dr.Shivarajkumar | Upendra | Raj B Shetty | Arjun Janya | Suraj</div>
                 <div class="channel-name">
-                    Anand Audio • 8080.1K Views
+                    Anand Audio • 8080.5K Views
                 </div>
             </div>
         </div>
@@ -361,10 +353,10 @@
                 <div class="play-btn"></div>
             </div>
             <div class="meta-box">
-                <div class="title-zh">披露日 |官方预告片</div>
+                <div class="title-zh">披露日|官方预告片</div>
                 <div class="title-org">Disclosure Day | Official Teaser</div>
                 <div class="channel-name">
-                    Universal Pictures • 12928.4K Views
+                    Universal Pictures • 12938.3K Views
                 </div>
             </div>
         </div>
@@ -381,7 +373,7 @@
                 <div class="title-zh">怪奇物语 5 |预告片 - 第 2 卷 | Netflix</div>
                 <div class="title-org">Stranger Things 5 | Trailer - Volume 2 | Netflix</div>
                 <div class="channel-name">
-                    Netflix Brasil • 1623.0K Views
+                    Netflix Brasil • 1623.2K Views
                 </div>
             </div>
         </div>
@@ -401,7 +393,7 @@
                 <div class="title-zh">Sidemen 世界最小 GTA 竞赛</div>
                 <div class="title-org">SIDEMEN WORLDS SMALLEST GTA RACE</div>
                 <div class="channel-name">
-                    MoreSidemen • 1258.2K Views
+                    MoreSidemen • 1258.3K Views
                 </div>
             </div>
         </div>
@@ -418,7 +410,7 @@
                 <div class="title-zh">澳大利亚 vs 英格兰 2025-26 |第三次#Ashes 测试|第一天</div>
                 <div class="title-org">Australia v England 2025-26 | Third #Ashes Test | Day One</div>
                 <div class="channel-name">
-                    cricket.com.au • 3004.7K Views
+                    cricket.com.au • 3005.0K Views
                 </div>
             </div>
         </div>
@@ -435,7 +427,7 @@
                 <div class="title-zh">我从亚马逊购买了令人惊叹的游戏设备</div>
                 <div class="title-org">I BOUGHT AMAZING GAMING GADGETS FROM AMAZON</div>
                 <div class="channel-name">
-                    TechShot • 1091.2K Views
+                    TechShot • 1091.5K Views
                 </div>
             </div>
         </div>
@@ -452,7 +444,7 @@
                 <div class="title-zh">让我开怀大笑，赢取 1,000 美元：ROBLOX 版</div>
                 <div class="title-org">MAKE ME LAUGH, WIN $1,000: ROBLOX EDITION</div>
                 <div class="channel-name">
-                    KSI+ • 698.3K Views
+                    KSI+ • 698.4K Views
                 </div>
             </div>
         </div>
@@ -469,7 +461,7 @@
                 <div class="title-zh">&TEAM 'Go in Blind' @ BEST HITS 2025</div>
                 <div class="title-org"></div>
                 <div class="channel-name">
-                    &TEAM • 103.4K Views
+                    &TEAM • 103.5K Views
                 </div>
             </div>
         </div>
@@ -486,7 +478,7 @@
                 <div class="title-zh">斯皮尔伯格的新 UFO 电影预告片中的巨大线索！披露日：分析</div>
                 <div class="title-org">Huge Clues In Spielberg's NEW UFO Movie Trailer! Disclosure Day: Analysis</div>
                 <div class="channel-name">
-                    Polarity • 114.0K Views
+                    Polarity • 114.1K Views
                 </div>
             </div>
         </div>
@@ -516,108 +508,6 @@
             </div>
             <div class="grid">
                 
-        <div class="card">
-            <div class="cover-wrap" onclick="play(this, 'nuWAZC11Odo')">
-                <img src="https://i.ytimg.com/vi/nuWAZC11Odo/maxresdefault.jpg" loading="lazy">
-                <div class="badge-top-right">
-                    
-                </div>
-                <div class="play-btn"></div>
-            </div>
-            <div class="meta-box">
-                <div class="title-zh">聆听氛围音乐放松身心。 David 在 Apple Store 零售店提供的提示。 ＃短裤</div>
-                <div class="title-org">Relax with Ambient Music. Tip from David at the Apple Store. #Shorts</div>
-                <div class="channel-name">
-                    Apple • 21.5K Views
-                </div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="cover-wrap" onclick="play(this, 'eaRRXk7CzWM')">
-                <img src="https://i.ytimg.com/vi/eaRRXk7CzWM/maxresdefault.jpg" loading="lazy">
-                <div class="badge-top-right">
-                    
-                </div>
-                <div class="play-btn"></div>
-            </div>
-            <div class="meta-box">
-                <div class="title-zh">在消息中发送和请求现金。来自 Apple Store 商店 Eden 的提示。 ＃短裤</div>
-                <div class="title-org">Send and request cash in Messages. Tip from Eden at the Apple Store. #Shorts</div>
-                <div class="channel-name">
-                    Apple • 43.9K Views
-                </div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="cover-wrap" onclick="play(this, 'HGp005A-2mM')">
-                <img src="https://i.ytimg.com/vi/HGp005A-2mM/maxresdefault.jpg" loading="lazy">
-                <div class="badge-top-right">
-                    
-                </div>
-                <div class="play-btn"></div>
-            </div>
-            <div class="meta-box">
-                <div class="title-zh">通过休息时间重新集中注意力。来自 Apple Store 零售店 Garryn 的提示。 ＃短裤</div>
-                <div class="title-org">Get your focus back with downtime. Tip from Garryn at the Apple Store. #Shorts</div>
-                <div class="channel-name">
-                    Apple • 494.0K Views
-                </div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="cover-wrap" onclick="play(this, 'J_IomhTi7ms')">
-                <img src="https://i.ytimg.com/vi/J_IomhTi7ms/maxresdefault.jpg" loading="lazy">
-                <div class="badge-top-right">
-                    
-                </div>
-                <div class="play-btn"></div>
-            </div>
-            <div class="meta-box">
-                <div class="title-zh">充电护照</div>
-                <div class="title-org">Charging Passport</div>
-                <div class="channel-name">
-                    Tesla • 7.8K Views
-                </div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="cover-wrap" onclick="play(this, 'bxLgg_FNHj8')">
-                <img src="https://i.ytimg.com/vi/bxLgg_FNHj8/maxresdefault.jpg" loading="lazy">
-                <div class="badge-top-right">
-                    
-                </div>
-                <div class="play-btn"></div>
-            </div>
-            <div class="meta-box">
-                <div class="title-zh">在系好靴子之前，先从冰冷到舒适</div>
-                <div class="title-org">Icy to cozy before you finish lacing up your boots</div>
-                <div class="channel-name">
-                    Tesla • 93.3K Views
-                </div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="cover-wrap" onclick="play(this, '_iytMHw6uJY')">
-                <img src="https://i.ytimg.com/vi/_iytMHw6uJY/maxresdefault.jpg" loading="lazy">
-                <div class="badge-top-right">
-                    
-                </div>
-                <div class="play-btn"></div>
-            </div>
-            <div class="meta-box">
-                <div class="title-zh">为智利的可再生能源未来提供动力|超级包装</div>
-                <div class="title-org">Powering Chile's Renewable Future | Megapack</div>
-                <div class="channel-name">
-                    Tesla • 61.8K Views
-                </div>
-            </div>
-        </div>
-        
         <div class="card">
             <div class="cover-wrap" onclick="play(this, 'rcd_SQZDlnk')">
                 <img src="https://i.ytimg.com/vi/rcd_SQZDlnk/maxresdefault.jpg" loading="lazy">
@@ -670,52 +560,154 @@
         </div>
         
         <div class="card">
-            <div class="cover-wrap" onclick="play(this, 'fO5FwBcCJBY')">
-                <img src="https://i.ytimg.com/vi/fO5FwBcCJBY/maxresdefault.jpg" loading="lazy">
+            <div class="cover-wrap" onclick="play(this, 'J_IomhTi7ms')">
+                <img src="https://i.ytimg.com/vi/J_IomhTi7ms/maxresdefault.jpg" loading="lazy">
                 <div class="badge-top-right">
                     
                 </div>
                 <div class="play-btn"></div>
             </div>
             <div class="meta-box">
-                <div class="title-zh">你愿意花 10,000 美元和他约会吗？</div>
-                <div class="title-org">Would You Date Him for $10,000?</div>
+                <div class="title-zh">充电护照</div>
+                <div class="title-org">Charging Passport</div>
                 <div class="channel-name">
-                    MrBeast • 70659.9K Views
+                    Tesla • 7.9K Views
                 </div>
             </div>
         </div>
         
         <div class="card">
-            <div class="cover-wrap" onclick="play(this, 'U-x6KxH1kB4')">
-                <img src="https://i.ytimg.com/vi/U-x6KxH1kB4/maxresdefault.jpg" loading="lazy">
+            <div class="cover-wrap" onclick="play(this, 'bxLgg_FNHj8')">
+                <img src="https://i.ytimg.com/vi/bxLgg_FNHj8/maxresdefault.jpg" loading="lazy">
                 <div class="badge-top-right">
                     
                 </div>
                 <div class="play-btn"></div>
             </div>
             <div class="meta-box">
-                <div class="title-zh">多少人拉一架飞机？</div>
-                <div class="title-org">How Many People to Pull a Plane?</div>
+                <div class="title-zh">在系好靴子之前，先从冰冷到舒适</div>
+                <div class="title-org">Icy to cozy before you finish lacing up your boots</div>
                 <div class="channel-name">
-                    MrBeast • 26055.3K Views
+                    Tesla • 93.3K Views
                 </div>
             </div>
         </div>
         
         <div class="card">
-            <div class="cover-wrap" onclick="play(this, '8bMh8azh3CY')">
-                <img src="https://i.ytimg.com/vi/8bMh8azh3CY/maxresdefault.jpg" loading="lazy">
+            <div class="cover-wrap" onclick="play(this, '_iytMHw6uJY')">
+                <img src="https://i.ytimg.com/vi/_iytMHw6uJY/maxresdefault.jpg" loading="lazy">
                 <div class="badge-top-right">
                     
                 </div>
                 <div class="play-btn"></div>
             </div>
             <div class="meta-box">
-                <div class="title-zh">100名飞行员为一架私人飞机而战</div>
-                <div class="title-org">100 Pilots Fight For A Private Jet</div>
+                <div class="title-zh">为智利的可再生能源未来提供动力|超级包装</div>
+                <div class="title-org">Powering Chile's Renewable Future | Megapack</div>
                 <div class="channel-name">
-                    MrBeast • 96771.6K Views
+                    Tesla • 61.8K Views
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="cover-wrap" onclick="play(this, 'nuWAZC11Odo')">
+                <img src="https://i.ytimg.com/vi/nuWAZC11Odo/maxresdefault.jpg" loading="lazy">
+                <div class="badge-top-right">
+                    
+                </div>
+                <div class="play-btn"></div>
+            </div>
+            <div class="meta-box">
+                <div class="title-zh">聆听氛围音乐放松身心。 David 在 Apple Store 零售店提供的提示。 ＃短裤</div>
+                <div class="title-org">Relax with Ambient Music. Tip from David at the Apple Store. #Shorts</div>
+                <div class="channel-name">
+                    Apple • 21.6K Views
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="cover-wrap" onclick="play(this, 'eaRRXk7CzWM')">
+                <img src="https://i.ytimg.com/vi/eaRRXk7CzWM/maxresdefault.jpg" loading="lazy">
+                <div class="badge-top-right">
+                    
+                </div>
+                <div class="play-btn"></div>
+            </div>
+            <div class="meta-box">
+                <div class="title-zh">在消息中发送和请求现金。来自 Apple Store 商店 Eden 的提示。 ＃短裤</div>
+                <div class="title-org">Send and request cash in Messages. Tip from Eden at the Apple Store. #Shorts</div>
+                <div class="channel-name">
+                    Apple • 43.9K Views
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="cover-wrap" onclick="play(this, 'HGp005A-2mM')">
+                <img src="https://i.ytimg.com/vi/HGp005A-2mM/maxresdefault.jpg" loading="lazy">
+                <div class="badge-top-right">
+                    
+                </div>
+                <div class="play-btn"></div>
+            </div>
+            <div class="meta-box">
+                <div class="title-zh">通过休息时间重新集中注意力。来自 Apple Store 零售店 Garryn 的提示。 ＃短裤</div>
+                <div class="title-org">Get your focus back with downtime. Tip from Garryn at the Apple Store. #Shorts</div>
+                <div class="channel-name">
+                    Apple • 495.7K Views
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="cover-wrap" onclick="play(this, 'NC1nzXq6Rh4')">
+                <img src="https://i.ytimg.com/vi/NC1nzXq6Rh4/maxresdefault.jpg" loading="lazy">
+                <div class="badge-top-right">
+                    
+                </div>
+                <div class="play-btn"></div>
+            </div>
+            <div class="meta-box">
+                <div class="title-zh">证明三折太棒了！</div>
+                <div class="title-org">PROOF the Trifold is Awesome!</div>
+                <div class="channel-name">
+                    Marques Brownlee • 528.4K Views
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="cover-wrap" onclick="play(this, 'trsHTKqmZOk')">
+                <img src="https://i.ytimg.com/vi/trsHTKqmZOk/maxresdefault.jpg" loading="lazy">
+                <div class="badge-top-right">
+                    
+                </div>
+                <div class="play-btn"></div>
+            </div>
+            <div class="meta-box">
+                <div class="title-zh">三星 Galaxy Z 三折印象：现在它有意义了！</div>
+                <div class="title-org">Samsung Galaxy Z Tri Fold Impressions: NOW It Makes Sense!</div>
+                <div class="channel-name">
+                    Marques Brownlee • 2400.4K Views
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="cover-wrap" onclick="play(this, 'sfyL4BswUeE')">
+                <img src="https://i.ytimg.com/vi/sfyL4BswUeE/maxresdefault.jpg" loading="lazy">
+                <div class="badge-top-right">
+                    
+                </div>
+                <div class="play-btn"></div>
+            </div>
+            <div class="meta-box">
+                <div class="title-zh">2025 年智能手机奖！</div>
+                <div class="title-org">Smartphone Awards 2025!</div>
+                <div class="channel-name">
+                    Marques Brownlee • 4013.8K Views
                 </div>
             </div>
         </div>
@@ -732,7 +724,7 @@
                 <div class="title-zh">原始技术：炉排炉、燃木冶炼实验</div>
                 <div class="title-org">Primitive Technology: Grate furnace, wood fired smelting experiment</div>
                 <div class="channel-name">
-                    Primitive Technology • 1387.2K Views
+                    Primitive Technology • 1387.3K Views
                 </div>
             </div>
         </div>
@@ -772,52 +764,52 @@
         </div>
         
         <div class="card">
-            <div class="cover-wrap" onclick="play(this, 'NC1nzXq6Rh4')">
-                <img src="https://i.ytimg.com/vi/NC1nzXq6Rh4/maxresdefault.jpg" loading="lazy">
+            <div class="cover-wrap" onclick="play(this, 'fO5FwBcCJBY')">
+                <img src="https://i.ytimg.com/vi/fO5FwBcCJBY/maxresdefault.jpg" loading="lazy">
                 <div class="badge-top-right">
                     
                 </div>
                 <div class="play-btn"></div>
             </div>
             <div class="meta-box">
-                <div class="title-zh">证明三折太棒了！</div>
-                <div class="title-org">PROOF the Trifold is Awesome!</div>
+                <div class="title-zh">你愿意花 10,000 美元和他约会吗？</div>
+                <div class="title-org">Would You Date Him for $10,000?</div>
                 <div class="channel-name">
-                    Marques Brownlee • 520.9K Views
+                    MrBeast • 70669.8K Views
                 </div>
             </div>
         </div>
         
         <div class="card">
-            <div class="cover-wrap" onclick="play(this, 'trsHTKqmZOk')">
-                <img src="https://i.ytimg.com/vi/trsHTKqmZOk/maxresdefault.jpg" loading="lazy">
+            <div class="cover-wrap" onclick="play(this, 'U-x6KxH1kB4')">
+                <img src="https://i.ytimg.com/vi/U-x6KxH1kB4/maxresdefault.jpg" loading="lazy">
                 <div class="badge-top-right">
                     
                 </div>
                 <div class="play-btn"></div>
             </div>
             <div class="meta-box">
-                <div class="title-zh">三星 Galaxy Z 三折印象：现在它有意义了！</div>
-                <div class="title-org">Samsung Galaxy Z Tri Fold Impressions: NOW It Makes Sense!</div>
+                <div class="title-zh">多少人拉一架飞机？</div>
+                <div class="title-org">How Many People to Pull a Plane?</div>
                 <div class="channel-name">
-                    Marques Brownlee • 2399.0K Views
+                    MrBeast • 26056.9K Views
                 </div>
             </div>
         </div>
         
         <div class="card">
-            <div class="cover-wrap" onclick="play(this, 'sfyL4BswUeE')">
-                <img src="https://i.ytimg.com/vi/sfyL4BswUeE/maxresdefault.jpg" loading="lazy">
+            <div class="cover-wrap" onclick="play(this, '8bMh8azh3CY')">
+                <img src="https://i.ytimg.com/vi/8bMh8azh3CY/maxresdefault.jpg" loading="lazy">
                 <div class="badge-top-right">
                     
                 </div>
                 <div class="play-btn"></div>
             </div>
             <div class="meta-box">
-                <div class="title-zh">2025 年智能手机奖！</div>
-                <div class="title-org">Smartphone Awards 2025!</div>
+                <div class="title-zh">100名飞行员为一架私人飞机而战</div>
+                <div class="title-org">100 Pilots Fight For A Private Jet</div>
                 <div class="channel-name">
-                    Marques Brownlee • 4013.7K Views
+                    MrBeast • 96784.1K Views
                 </div>
             </div>
         </div>
@@ -834,7 +826,7 @@
                 <div class="title-zh">亚历山大大帝真的那么伟大吗？ - 斯蒂芬妮·洪切尔·史密斯</div>
                 <div class="title-org">Was Alexander the Great really that great? - Stephanie Honchell Smith</div>
                 <div class="channel-name">
-                    TED-Ed • 42.2K Views
+                    TED-Ed • 42.5K Views
                 </div>
             </div>
         </div>
@@ -868,13 +860,12 @@
                 <div class="title-zh">什么姿势睡觉最好？ - 雷切尔·玛丽·E·萨拉斯</div>
                 <div class="title-org">What’s the best position to sleep in? - Rachel Marie E. Salas</div>
                 <div class="channel-name">
-                    TED-Ed • 974.9K Views
+                    TED-Ed • 975.1K Views
                 </div>
             </div>
         </div>
         
             </div>
-
         </div>
 
         <script>
