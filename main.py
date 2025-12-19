@@ -154,19 +154,17 @@ def fetch_categorized_global_pool(youtube):
     # 4. 排序
     bucket_breakout.sort(key=lambda x: x['viral_ratio'], reverse=True)
     
-    # 按照点赞排序生成一套
     bucket_music.sort(key=lambda x: x['like_cnt'], reverse=True)
     bucket_ent.sort(key=lambda x: x['like_cnt'], reverse=True)
     bucket_content.sort(key=lambda x: x['like_cnt'], reverse=True)
     
     liked_set = {
-        'breakout': bucket_breakout[:4], # 黑马取前4
+        'breakout': bucket_breakout[:4],
         'music': bucket_music[:6],
         'ent': bucket_ent[:4],
         'content': bucket_content[:30]
     }
 
-    # 按照评论排序生成一套
     bucket_music.sort(key=lambda x: x['comm_cnt'], reverse=True)
     bucket_ent.sort(key=lambda x: x['comm_cnt'], reverse=True)
     bucket_content.sort(key=lambda x: x['comm_cnt'], reverse=True)
@@ -179,7 +177,6 @@ def fetch_categorized_global_pool(youtube):
     
     print("正在获取神评论...")
     all_selected = liked_set['breakout'] + liked_set['music'] + liked_set['ent'] + liked_set['content']
-    # 简单去重获取评论，避免重复请求
     seen_vids = set()
     for v in all_selected:
         if v['id'] not in seen_vids:
@@ -221,7 +218,7 @@ def fetch_channel_videos(youtube, channel_ids):
         except: pass
     return final_videos
 
-# --- 网页生成 (Ref: Obys / Best Website Gallery / Creative Review) ---
+# --- 网页生成 ---
 def generate_html(liked_set, discuss_set, brands, creators):
     today_str = get_beijing_time_str()
     
@@ -233,7 +230,6 @@ def generate_html(liked_set, discuss_set, brands, creators):
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>VISION | Design Edition</title>
         <style>
-            /* 1. 基础配色：高级灰背景 + 黑色文字 (Ref 1) */
             :root {{ 
                 --bg: #F2F2F2; 
                 --text: #111; 
@@ -250,14 +246,13 @@ def generate_html(liked_set, discuss_set, brands, creators):
                 padding-bottom: 150px; 
             }}
             
-            /* 2. 头部设计：超大排版 (Ref 1) */
             header {{ 
                 padding: 100px 40px 60px; 
                 text-align: center; 
             }}
             h1 {{ 
                 margin: 0; 
-                font-size: 10vw; /* 响应式超大字体 */
+                font-size: 10vw; 
                 font-weight: 900; 
                 letter-spacing: -4px; 
                 line-height: 0.85;
@@ -273,7 +268,6 @@ def generate_html(liked_set, discuss_set, brands, creators):
                 color: #666;
             }}
             
-            /* 导航栏：简约胶囊 (Ref 3) */
             .nav {{ 
                 display: flex; 
                 justify-content: center; 
@@ -308,7 +302,7 @@ def generate_html(liked_set, discuss_set, brands, creators):
             .tab.active {{ display: block; }}
             @keyframes fade {{ from {{opacity:0; transform:translateY(20px);}} to {{opacity:1; transform:translateY(0);}} }}
             
-            /* 3. 特殊板块：黑马榜 (Ref 3 - Creative Review "Our Picks" Style) */
+            /* 【注意】这里使用了双大括号 {{ }} 来转义 CSS */
             .breakout-section {{
                 background: #000;
                 color: #fff;
@@ -330,7 +324,6 @@ def generate_html(liked_set, discuss_set, brands, creators):
             }}
             .breakout-tag {{ font-size: 1rem; font-weight: 600; color: #ffeb3b; }}
             
-            /* 普通板块标题 (Clean Style) */
             .section-title {{ 
                 font-size: 2.5rem; 
                 font-weight: 800; 
@@ -345,8 +338,6 @@ def generate_html(liked_set, discuss_set, brands, creators):
             
             .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 40px; }}
             
-            /* 4. 卡片设计：Gallery 风格 (Ref 2) */
-            /* 图片在上，白底文字在下 */
             .card {{ 
                 background: var(--card-bg); 
                 border-radius: 16px; 
@@ -371,7 +362,6 @@ def generate_html(liked_set, discuss_set, brands, creators):
             }}
             .card:hover .cover-wrap img {{ transform: scale(1.05); }}
             
-            /* 徽章悬浮在图片上 */
             .badges {{ position: absolute; top: 15px; left: 15px; display: flex; gap: 8px; z-index: 2; }}
             .badge {{ 
                 background: rgba(255,255,255,0.9); 
@@ -383,7 +373,6 @@ def generate_html(liked_set, discuss_set, brands, creators):
                 box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             }}
             
-            /* 播放按钮 */
             .play-btn {{ 
                 position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); 
                 width: 60px; height: 60px; 
@@ -396,7 +385,6 @@ def generate_html(liked_set, discuss_set, brands, creators):
             .play-btn::after {{ content: ''; border: 10px solid transparent; border-left: 16px solid #fff; margin-left: 6px; }}
             .cover-wrap:hover .play-btn {{ opacity: 1; transform: translate(-50%, -50%) scale(1); }}
 
-            /* 文字区域 (Ref 2 Style) */
             .info {{ padding: 25px; flex-grow: 1; display: flex; flex-direction: column; }}
             
             .title-zh {{ 
@@ -421,12 +409,12 @@ def generate_html(liked_set, discuss_set, brands, creators):
                 font-style: italic; line-height: 1.5; 
             }}
             
-            /* 黑马榜卡片特殊样式 (深色卡片) */
-            .breakout-section .card { background: #1a1a1a; color: #fff; border: 1px solid #333; }
-            .breakout-section .title-zh { color: #fff; }
-            .breakout-section .title-org { color: #888; }
-            .breakout-section .meta-row { border-color: #333; color: #aaa; }
-            .breakout-section .comment { background: #222; color: #ccc; }
+            /* 【修复点】黑马榜样式的双大括号 */
+            .breakout-section .card {{ background: #1a1a1a; color: #fff; border: 1px solid #333; }}
+            .breakout-section .title-zh {{ color: #fff; }}
+            .breakout-section .title-org {{ color: #888; }}
+            .breakout-section .meta-row {{ border-color: #333; color: #aaa; }}
+            .breakout-section .comment {{ background: #222; color: #ccc; }}
 
         </style>
     </head>
@@ -447,7 +435,6 @@ def generate_html(liked_set, discuss_set, brands, creators):
             
             <!-- 1. Global Top Liked (含黑马) -->
             <div id="liked" class="tab active">
-                <!-- 黑马榜：独立深色区块 (Ref 3) -->
                 <div class="breakout-section">
                     <div class="breakout-header">
                         <div>🚀 Breakout Hits</div>
@@ -508,22 +495,18 @@ def render_cards(videos, type, sort_key):
     if not videos: return "<p style='color:#999; padding:20px'>Loading...</p>"
     html = ""
     for v in videos:
-        # 徽章
         badges = ""
         if 'region_flag' in v: badges += f"<div class='badge'>{v['region_flag']}</div>"
         if type == 'breakout' and 'viral_ratio' in v:
              badges += f"<div class='badge'>⚡ {round(v['viral_ratio'], 1)}x</div>"
         
-        # 评论
         comm = f"<div class='comment'>“ {v['hot_comment']} ”</div>" if v.get('hot_comment') else ""
         
-        # 数据
         s = v.get('statistics', {})
         if sort_key == 'like': label = f"♥ {round(int(s.get('likeCount',0))/1000,1)}K"
         elif sort_key == 'comm': label = f"💬 {round(int(s.get('commentCount',0))/1000,1)}K"
         else: label = f"👁️ {round(int(s.get('viewCount',0))/1000,1)}K"
         
-        # 标题
         zh = v.get('title_dual', {}).get('zh', v['snippet']['title'])
         org = v.get('title_dual', {}).get('org', '')
         if zh == org: org = ""
