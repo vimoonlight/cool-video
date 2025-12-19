@@ -1,12 +1,13 @@
 import os
 import datetime
 import re
+import html
 from googleapiclient.discovery import build
 
 # --- 1. 配置区域 ---
 API_KEY = os.environ.get("YOUTUBE_API_KEY")
 
-# 【名单 A】品牌区 (Brand Zone)
+# 【名单 A】品牌区
 BRAND_CHANNELS = [
     'UCE_M8A5yxnLfW0KghEeajjw', # Apple
     'UCL8RlvQSa4YEj74wLBSku-A', # Nike
@@ -14,13 +15,11 @@ BRAND_CHANNELS = [
     'UCtI0Hodo5o5dUb67FeUjDeA', # SpaceX
     'UC0UBX6y5bL1sU7Oq6wMv0aA', # Samsung
     'UCx5XG1Lnc65_3rLqQWa_49w', # Louis Vuitton
-    'UCOHMGt67_u8FjT_L4t8Zcww', # Gucci
     'UC5WjFrtBdufl6CZojX3D8dQ', # Porsche
     'UCvQECJukTDEUU9Nd6TQq_xg', # Google
-    'UCsTcErHg8oDvUnTzoqsYeNw', # Adidas
 ]
 
-# 【名单 B】个人博主 (Creator Zone)
+# 【名单 B】个人博主
 CREATOR_CHANNELS = [
     'UCbjptxcv1U12W8xc_1fL8HQ', # Peter McKinnon
     'UCX6OQ3DkcsbYNE6H8uQQuVA', # MrBeast
@@ -28,12 +27,15 @@ CREATOR_CHANNELS = [
     'UCBJycsmduvYEL83R_U4JriQ', # MKBHD
     'UCsooa4yRKGN_zEE8iknghZA', # TED-Ed
     'UCAL3JXZSzSm8AlZyD3nQdBA', # Primitive Technology
-    'UC295-Dw_tDNtZXFeAPAW6Aw', # 5-Minute Crafts
     'UCpw269dbC0hDrwNmyq4U66Q', # Dude Perfect
 ]
 
-# 全球扫描范围
-TARGET_REGIONS = ['US', 'GB', 'DE', 'FR', 'JP', 'KR', 'TW', 'IN', 'BR', 'AU']
+# 全球扫描范围与国旗映射
+TARGET_REGIONS = {
+    'US': '🇺🇸', 'GB': '🇬🇧', 'DE': '🇩🇪', 'FR': '🇫🇷', 
+    'JP': '🇯🇵', 'KR': '🇰🇷', 'TW': '🇹🇼', 'IN': '🇮🇳', 
+    'BR': '🇧🇷', 'AU': '🇦🇺'
+}
 
 def get_youtube_service():
     if not API_KEY: return None
@@ -44,106 +46,128 @@ def get_seconds(duration_str):
     if not duration_str: return 0
     match = re.match(r'PT((?P<hours>\d+)H)?((?P<minutes>\d+)M)?((?P<seconds>\d+)S)?', duration_str)
     if not match: return 0
-    time_data = match.groupdict()
-    hours = int(time_data['hours'] or 0)
-    minutes = int(time_data['minutes'] or 0)
-    seconds = int(time_data['seconds'] or 0)
-    return hours * 3600 + minutes * 60 + seconds
+    d = match.groupdict()
+    return int(d['hours'] or 0)*3600 + int(d['minutes'] or 0)*60 + int(d['seconds'] or 0)
 
 def get_beijing_time_str():
-    utc_now = datetime.datetime.utcnow()
-    beijing_now = utc_now + datetime.timedelta(hours=8)
-    return beijing_now.strftime("%Y-%m-%d")
+    return (datetime.datetime.utcnow() + datetime.timedelta(hours=8)).strftime("%Y-%m-%d")
 
-# --- 核心逻辑 ---
-def fetch_filtered_global_pool(youtube):
-    print("正在进行全球扫描...")
+# --- 核心逻辑：获取神评论 ---
+def attach_hot_comment(youtube, video_item):
+    """获取单条最热、简短的评论"""
+    try:
+        res = youtube.commentThreads().list(
+            part="snippet", videoId=video_item['id'], 
+            order="relevance", maxResults=1, textFormat="plainText"
+        ).execute()
+        
+        if res['items']:
+            comment = res['items'][0]['snippet']['topLevelComment']['snippet']['textDisplay']
+            # 简单清洗：去除换行，限制长度
+            clean_comment = html.unescape(comment).replace('\n', ' ')
+            if len(clean_comment) > 60:
+                clean_comment = clean_comment[:58] + "..."
+            video_item['hot_comment'] = clean_comment
+        else:
+            video_item['hot_comment'] = ""
+    except:
+        video_item['hot_comment'] = ""
+    return video_item
+
+# --- 核心逻辑：全球抓取与分层 ---
+def fetch_categorized_global_pool(youtube):
+    print("正在进行全球分层扫描...")
     raw_videos = []
     seen_ids = set()
     
-    # 抓取全球热门
-    for region in TARGET_REGIONS:
+    # 1. 抓取 (带上地区标记)
+    for code, flag in TARGET_REGIONS.items():
         try:
             res = youtube.videos().list(
-                chart='mostPopular', regionCode=region,
+                chart='mostPopular', regionCode=code,
                 part='snippet,statistics,contentDetails', maxResults=15
             ).execute()
             for item in res['items']:
                 if item['id'] not in seen_ids:
+                    item['region_flag'] = flag # 打上国旗标签
                     raw_videos.append(item)
                     seen_ids.add(item['id'])
         except: pass
 
-    # 分桶与清洗
+    # 2. 分桶 (Music, Ent, Content)
     bucket_music = []
-    bucket_entertainment = []
+    bucket_ent = []
     bucket_content = []
     
+    print(f"原始池 {len(raw_videos)} 个，开始清洗...")
+    
     for v in raw_videos:
-        # 1. 过滤 Shorts (<60s)
-        duration = v['contentDetails'].get('duration', '')
-        if get_seconds(duration) < 60: continue
-
-        # 2. 过滤黑名单 (儿童/新闻/游戏)
-        cat_id = v['snippet'].get('categoryId', '0')
-        if cat_id in ['1', '20', '25']: continue
+        # A. 过滤 Shorts
+        if get_seconds(v['contentDetails'].get('duration', '')) < 60: continue
+        # B. 过滤 黑名单
+        cat = v['snippet'].get('categoryId', '0')
+        if cat in ['1', '20', '25']: continue
         
-        # 3. 填充数据
-        v['like_count'] = int(v['statistics'].get('likeCount', 0))
-        v['comment_count'] = int(v['statistics'].get('commentCount', 0))
-        
-        # 4. 获取高清封面
+        # C. 数据准备
+        v['like_cnt'] = int(v['statistics'].get('likeCount', 0))
         thumbs = v['snippet']['thumbnails']
         v['cover'] = thumbs.get('maxres', thumbs.get('high', thumbs.get('medium')))['url']
-
-        if cat_id == '10': bucket_music.append(v)
-        elif cat_id == '24': bucket_entertainment.append(v)
+        
+        # D. 归类
+        if cat == '10': bucket_music.append(v)
+        elif cat == '24': bucket_ent.append(v)
         else: bucket_content.append(v)
 
-    # 排序与截断
-    bucket_music.sort(key=lambda x: x['like_count'], reverse=True)
-    bucket_entertainment.sort(key=lambda x: x['like_count'], reverse=True)
-    bucket_content.sort(key=lambda x: x['like_count'], reverse=True)
+    # 3. 排序与截断
+    bucket_music.sort(key=lambda x: x['like_cnt'], reverse=True)
+    bucket_ent.sort(key=lambda x: x['like_cnt'], reverse=True)
+    bucket_content.sort(key=lambda x: x['like_cnt'], reverse=True)
     
-    return bucket_music[:7] + bucket_entertainment[:5] + bucket_content[:40]
+    final_music = bucket_music[:7]     # 7个 MV
+    final_ent = bucket_ent[:5]         # 5个 挑战
+    final_content = bucket_content[:35] # 35个 优质内容
+    
+    # 4. 获取评论 (只给入选的视频获取，节省配额)
+    print("正在获取神评论...")
+    all_selected = final_music + final_ent + final_content
+    for v in all_selected:
+        attach_hot_comment(youtube, v)
+        
+    return final_music, final_ent, final_content
 
-def fetch_channel_videos_optimized(youtube, channel_ids):
+# --- 品牌/博主抓取 (复用) ---
+def fetch_channel_videos(youtube, channel_ids):
     videos = []
-    # 获取上传列表
     for i in range(0, len(channel_ids), 50):
         try:
             res = youtube.channels().list(id=','.join(channel_ids[i:i+50]), part='contentDetails').execute()
             for item in res['items']:
                 uid = item['contentDetails']['relatedPlaylists']['uploads']
-                # 获取视频
-                pl_res = youtube.playlistItems().list(playlistId=uid, part='snippet', maxResults=3).execute()
-                for vid in pl_res['items']:
+                pl = youtube.playlistItems().list(playlistId=uid, part='snippet', maxResults=3).execute()
+                for vid in pl['items']:
                     v_data = {'id': vid['snippet']['resourceId']['videoId'], 'snippet': vid['snippet']}
-                    # 获取封面
                     thumbs = vid['snippet']['thumbnails']
                     v_data['cover'] = thumbs.get('maxres', thumbs.get('high', thumbs.get('medium')))['url']
                     videos.append(v_data)
         except: pass
-            
-    # 补全统计数据
+        
+    # 补全数据
     final_videos = []
-    vid_ids = [v['id'] for v in videos]
-    for i in range(0, len(vid_ids), 50):
+    vids = [v['id'] for v in videos]
+    for i in range(0, len(vids), 50):
         try:
-            stats = youtube.videos().list(id=','.join(vid_ids[i:i+50]), part='statistics').execute()
-            # 合并数据
-            for j, s_item in enumerate(stats['items']):
-                # 找到对应的原始数据(简单对齐)
+            stats = youtube.videos().list(id=','.join(vids[i:i+50]), part='statistics').execute()
+            for j, s in enumerate(stats['items']):
                 if j < len(videos[i:i+50]):
-                    v_ref = videos[i+j]
-                    if v_ref['id'] == s_item['id']:
-                        v_ref['statistics'] = s_item['statistics']
-                        final_videos.append(v_ref)
+                    v = videos[i+j]
+                    if v['id'] == s['id']:
+                        v['statistics'] = s['statistics']
+                        final_videos.append(v)
         except: pass
     return final_videos
 
-# --- 网页生成 (采用封面+点击播放模式) ---
-def generate_html(most_liked, most_commented, brands, creators):
+# --- 网页生成 (分层布局版) ---
+def generate_html(music, ent, content, brands, creators):
     today_str = get_beijing_time_str()
     
     html = f"""
@@ -152,50 +176,51 @@ def generate_html(most_liked, most_commented, brands, creators):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>VISION | Global</title>
+        <title>VISION | Daily</title>
         <style>
-            :root {{ --bg: #050505; --card: #141414; --text: #e5e5e5; }}
-            body {{ background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, Roboto, sans-serif; margin: 0; }}
+            :root {{ --bg: #050505; --text: #e5e5e5; --accent: #ff3b30; }}
+            body {{ background: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif; margin: 0; padding-bottom: 100px; }}
             
-            header {{ padding: 80px 20px 40px; text-align: center; }}
-            h1 {{ margin: 0; font-size: 3rem; font-weight: 800; background: linear-gradient(to right, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }}
+            header {{ padding: 60px 20px 40px; text-align: center; }}
+            h1 {{ margin: 0; font-size: 3rem; font-weight: 800; letter-spacing: -1px; }}
             .date {{ color: #666; font-size: 0.8rem; margin-top: 10px; letter-spacing: 2px; text-transform: uppercase; }}
             
-            .nav {{ display: flex; justify-content: center; gap: 30px; padding: 20px; border-bottom: 1px solid #222; position: sticky; top: 0; background: rgba(5,5,5,0.95); backdrop-filter: blur(10px); z-index: 99; overflow-x: auto; }}
-            .btn {{ background: none; border: none; color: #666; cursor: pointer; font-size: 0.9rem; padding: 10px 15px; font-weight: 600; white-space: nowrap; transition: 0.3s; }}
-            .btn.active {{ color: #fff; border-bottom: 2px solid #fff; }}
+            .nav {{ display: flex; justify-content: center; gap: 30px; padding: 20px; border-bottom: 1px solid #222; position: sticky; top: 0; background: rgba(5,5,5,0.95); z-index: 99; overflow-x: auto; }}
+            .btn {{ background: none; border: none; color: #666; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: 0.3s; }}
+            .btn:hover, .btn.active {{ color: #fff; }}
             
-            .container {{ max-width: 1600px; margin: 0 auto; padding: 40px 20px; min-height: 80vh; }}
+            .container {{ max-width: 1600px; margin: 0 auto; padding: 20px; }}
             .tab {{ display: none; animation: fade 0.6s; }}
             .tab.active {{ display: block; }}
             @keyframes fade {{ from {{opacity:0; transform:translateY(20px);}} to {{opacity:1; transform:translateY(0);}} }}
             
-            .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }}
-            .card {{ background: transparent; }}
+            /* 分区标题 */
+            .section-title {{ display: flex; align-items: center; margin: 60px 0 30px; font-size: 1.5rem; font-weight: 700; color: #fff; }}
+            .section-title::before {{ content: ''; width: 4px; height: 24px; background: var(--accent); margin-right: 15px; border-radius: 2px; }}
             
-            /* 核心修改：封面图模式 */
-            .vid-wrap {{ 
-                position: relative; padding-bottom: 56.25%; background: #111; border-radius: 8px; overflow: hidden; cursor: pointer;
-                transition: transform 0.3s;
-            }}
-            .vid-wrap:hover {{ transform: scale(1.02); }}
-            .vid-wrap img {{ position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; opacity: 0.9; transition: opacity 0.3s; }}
+            .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 40px 30px; }}
+            
+            /* 卡片样式 */
+            .card {{ position: relative; }}
+            .vid-wrap {{ position: relative; padding-bottom: 56.25%; background: #111; border-radius: 8px; overflow: hidden; cursor: pointer; transition: transform 0.3s; }}
+            .vid-wrap:hover {{ transform: scale(1.02); z-index: 10; }}
+            .vid-wrap img {{ position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; opacity: 0.9; }}
             .vid-wrap:hover img {{ opacity: 1; }}
             
+            /* 国旗标签 */
+            .flag-badge {{ position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px; font-size: 1.2rem; backdrop-filter: blur(4px); z-index: 2; }}
+            
             /* 播放按钮 */
-            .play-icon {{
-                position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                width: 50px; height: 50px; background: rgba(0,0,0,0.7); border-radius: 50%;
-                display: flex; align-items: center; justify-content: center; border: 2px solid #fff;
-                transition: background 0.3s;
-            }}
-            .play-icon::after {{ content: ''; border-style: solid; border-width: 10px 0 10px 18px; border-color: transparent transparent transparent #fff; margin-left: 4px; }}
-            .vid-wrap:hover .play-icon {{ background: #f00; border-color: #f00; }}
-
+            .play-icon {{ position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: rgba(0,0,0,0.5); border-radius: 50%; border: 2px solid #fff; display: flex; justify-content: center; align-items: center; opacity: 0.8; }}
+            .play-icon::after {{ content: ''; border: 8px solid transparent; border-left: 12px solid #fff; margin-left: 4px; }}
+            
             .info {{ padding-top: 12px; }}
             .title {{ font-weight: 600; font-size: 0.95rem; margin-bottom: 6px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }}
-            .meta {{ color: #888; font-size: 0.8rem; display: flex; justify-content: space-between; }}
-            .hl {{ color: #fff; font-weight: bold; background: #222; padding: 2px 6px; border-radius: 4px; }}
+            .meta {{ color: #888; font-size: 0.8rem; display: flex; justify-content: space-between; margin-bottom: 8px; }}
+            
+            /* 神评论样式 */
+            .comment {{ font-size: 0.8rem; color: #666; background: #111; padding: 8px 12px; border-radius: 6px; line-height: 1.4; font-style: italic; border-left: 2px solid #333; }}
+            .comment::before {{ content: '“'; color: #444; margin-right: 4px; }}
         </style>
     </head>
     <body>
@@ -204,17 +229,30 @@ def generate_html(most_liked, most_commented, brands, creators):
             <div class="date">{today_str} • WORLD EDITION</div>
         </header>
         <nav class="nav">
-            <button class="btn active" onclick="show('likes', this)">Top Liked</button>
-            <button class="btn" onclick="show('comments', this)">Top Discussed</button>
+            <button class="btn active" onclick="show('global', this)">Global Trends</button>
             <button class="btn" onclick="show('brands', this)">Brand Zone</button>
             <button class="btn" onclick="show('creators', this)">Creator Zone</button>
         </nav>
+
         <div class="container">
-            <div id="likes" class="tab active"><div class="grid">{render(most_liked, 'likes')}</div></div>
-            <div id="comments" class="tab"><div class="grid">{render(most_commented, 'comments')}</div></div>
-            <div id="brands" class="tab"><div class="grid">{render(brands, 'brand')}</div></div>
-            <div id="creators" class="tab"><div class="grid">{render(creators, 'creator')}</div></div>
+            <!-- 全球趋势：分层展示 -->
+            <div id="global" class="tab active">
+                
+                <div class="section-title">🎵 Top Music Videos (全球热播MV)</div>
+                <div class="grid">{render_section(music, 'music')}</div>
+                
+                <div class="section-title">🎪 Viral Challenges (挑战与娱乐)</div>
+                <div class="grid">{render_section(ent, 'ent')}</div>
+                
+                <div class="section-title">💡 Must-Watch Stories (精选优质内容)</div>
+                <div class="grid">{render_section(content, 'content')}</div>
+                
+            </div>
+
+            <div id="brands" class="tab"><div class="grid">{render_section(brands, 'brand')}</div></div>
+            <div id="creators" class="tab"><div class="grid">{render_section(creators, 'creator')}</div></div>
         </div>
+
         <script>
             function show(id, btn) {{
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -222,10 +260,8 @@ def generate_html(most_liked, most_commented, brands, creators):
                 document.getElementById(id).classList.add('active');
                 btn.classList.add('active');
             }}
-            
-            // 点击加载视频功能
-            function playVideo(wrapper, videoId) {{
-                wrapper.innerHTML = '<iframe src="https://www.youtube.com/embed/' + videoId + '?autoplay=1" allow="autoplay" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"></iframe>';
+            function play(wrap, id) {{
+                wrap.innerHTML = '<iframe src="https://www.youtube.com/embed/'+id+'?autoplay=1" allow="autoplay; fullscreen" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"></iframe>';
             }}
         </script>
     </body>
@@ -234,33 +270,34 @@ def generate_html(most_liked, most_commented, brands, creators):
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html)
 
-def render(videos, mode):
-    if not videos: return "<p style='color:#666'>Updating...</p>"
+def render_section(videos, type):
+    if not videos: return "<p style='color:#444'>Loading...</p>"
     html = ""
     for v in videos:
+        # 国旗逻辑
+        flag_html = f"<div class='flag-badge'>{v['region_flag']}</div>" if 'region_flag' in v else ""
+        # 评论逻辑
+        comment_html = f"<div class='comment'>{v['hot_comment']}</div>" if v.get('hot_comment') else ""
+        
+        # 数据显示
         s = v.get('statistics', {})
-        like = int(s.get('likeCount', 0))
-        comm = int(s.get('commentCount', 0))
-        def fmt(n): return f"{round(n/1000000,1)}M" if n>1000000 else (f"{round(n/1000,1)}K" if n>1000 else str(n))
+        cnt = int(s.get('viewCount', 0)) if type=='brand' else int(s.get('likeCount', 0))
+        label = f"👁️ {round(cnt/1000,1)}K" if type=='brand' else f"♥ {round(cnt/1000,1)}K"
         
-        badge = ""
-        if mode == 'likes': badge = f"♥ {fmt(like)}"
-        elif mode == 'comments': badge = f"💬 {fmt(comm)}"
-        else: badge = "PLAY"
-        
-        # 核心：生成封面图结构，onclick 触发 iframe
         html += f"""
         <div class="card">
-            <div class="vid-wrap" onclick="playVideo(this, '{v['id']}')">
-                <img src="{v.get('cover', '')}" loading="lazy">
+            <div class="vid-wrap" onclick="play(this, '{v['id']}')">
+                <img src="{v.get('cover')}" loading="lazy">
+                {flag_html}
                 <div class="play-icon"></div>
             </div>
             <div class="info">
                 <div class="title">{v['snippet']['title']}</div>
                 <div class="meta">
-                    <span style="max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{v['snippet']['channelTitle']}</span>
-                    <span class="hl">{badge}</span>
+                    <span>{v['snippet']['channelTitle']}</span>
+                    <span>{label}</span>
                 </div>
+                {comment_html}
             </div>
         </div>
         """
@@ -270,16 +307,14 @@ def main():
     youtube = get_youtube_service()
     if not youtube: return
     
-    # 1. 抓取与清洗
-    clean_pool = fetch_filtered_global_pool(youtube)
-    # 2. 排序
-    most_liked = sorted(clean_pool, key=lambda x: int(x['statistics'].get('likeCount', 0)), reverse=True)
-    most_commented = sorted(clean_pool, key=lambda x: int(x['statistics'].get('commentCount', 0)), reverse=True)
-    # 3. 抓取列表
-    brands = fetch_channel_videos_optimized(youtube, BRAND_CHANNELS)
-    creators = fetch_channel_videos_optimized(youtube, CREATOR_CHANNELS)
+    # 1. 抓取分层全球数据
+    music, ent, content = fetch_categorized_global_pool(youtube)
     
-    generate_html(most_liked, most_commented, brands, creators)
+    # 2. 抓取关注列表
+    brands = fetch_channel_videos(youtube, BRAND_CHANNELS)
+    creators = fetch_channel_videos(youtube, CREATOR_CHANNELS)
+    
+    generate_html(music, ent, content, brands, creators)
 
 if __name__ == "__main__":
     main()
