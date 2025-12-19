@@ -3,6 +3,7 @@ import datetime
 import re
 import html
 from googleapiclient.discovery import build
+from deep_translator import GoogleTranslator
 
 # --- 1. 配置区域 ---
 API_KEY = os.environ.get("YOUTUBE_API_KEY")
@@ -30,7 +31,7 @@ CREATOR_CHANNELS = [
     'UCpw269dbC0hDrwNmyq4U66Q', # Dude Perfect
 ]
 
-# 全球扫描范围与国旗映射
+# 全球扫描范围
 TARGET_REGIONS = {
     'US': '🇺🇸', 'GB': '🇬🇧', 'DE': '🇩🇪', 'FR': '🇫🇷', 
     'JP': '🇯🇵', 'KR': '🇰🇷', 'TW': '🇹🇼', 'IN': '🇮🇳', 
@@ -40,6 +41,14 @@ TARGET_REGIONS = {
 def get_youtube_service():
     if not API_KEY: return None
     return build('youtube', 'v3', developerKey=API_KEY)
+
+# --- 翻译模块 ---
+def translate_text(text):
+    if not text: return ""
+    try:
+        src = text[:400]
+        return GoogleTranslator(source='auto', target='zh-CN').translate(src)
+    except: return text
 
 # --- 辅助功能 ---
 def get_seconds(duration_str):
@@ -52,90 +61,127 @@ def get_seconds(duration_str):
 def get_beijing_time_str():
     return (datetime.datetime.utcnow() + datetime.timedelta(hours=8)).strftime("%Y-%m-%d")
 
-# --- 核心逻辑：获取神评论 ---
+# --- 核心逻辑 ---
+
+def get_channel_subs_batch(youtube, channel_ids):
+    """批量获取频道的粉丝数，用于计算出圈指数"""
+    subs_map = {}
+    # 去重
+    unique_ids = list(set(channel_ids))
+    for i in range(0, len(unique_ids), 50):
+        try:
+            res = youtube.channels().list(
+                id=','.join(unique_ids[i:i+50]), 
+                part='statistics'
+            ).execute()
+            for item in res['items']:
+                # 获取粉丝数 (如果没有显示，默认给一个大数防止误判)
+                count = int(item['statistics'].get('subscriberCount', 1000000))
+                if count == 0: count = 1 # 防止除以0
+                subs_map[item['id']] = count
+        except: pass
+    return subs_map
+
 def attach_hot_comment(youtube, video_item):
-    """获取单条最热、简短的评论"""
     try:
         res = youtube.commentThreads().list(
             part="snippet", videoId=video_item['id'], 
             order="relevance", maxResults=1, textFormat="plainText"
         ).execute()
-        
         if res['items']:
-            comment = res['items'][0]['snippet']['topLevelComment']['snippet']['textDisplay']
-            # 简单清洗：去除换行，限制长度
-            clean_comment = html.unescape(comment).replace('\n', ' ')
-            if len(clean_comment) > 60:
-                clean_comment = clean_comment[:58] + "..."
-            video_item['hot_comment'] = clean_comment
-        else:
-            video_item['hot_comment'] = ""
-    except:
-        video_item['hot_comment'] = ""
+            raw = res['items'][0]['snippet']['topLevelComment']['snippet']['textDisplay']
+            raw = html.unescape(raw).replace('\n', ' ')
+            zh = translate_text(raw)
+            # 截取短评
+            if len(zh) > 20: zh = zh[:18] + "..."
+            video_item['hot_comment'] = zh
+        else: video_item['hot_comment'] = ""
+    except: video_item['hot_comment'] = ""
     return video_item
 
-# --- 核心逻辑：全球抓取与分层 ---
 def fetch_categorized_global_pool(youtube):
     print("正在进行全球分层扫描...")
     raw_videos = []
     seen_ids = set()
     
-    # 1. 抓取 (带上地区标记)
+    # 1. 抓取
     for code, flag in TARGET_REGIONS.items():
         try:
             res = youtube.videos().list(
                 chart='mostPopular', regionCode=code,
-                part='snippet,statistics,contentDetails', maxResults=15
+                part='snippet,statistics,contentDetails', maxResults=30
             ).execute()
             for item in res['items']:
                 if item['id'] not in seen_ids:
-                    item['region_flag'] = flag # 打上国旗标签
+                    item['region_flag'] = flag
+                    # 翻译标题
+                    org = item['snippet']['title']
+                    zh = translate_text(org)
+                    item['title_dual'] = {'zh': zh, 'org': org}
                     raw_videos.append(item)
                     seen_ids.add(item['id'])
         except: pass
 
-    # 2. 分桶 (Music, Ent, Content)
+    # 2. 准备黑马计算
+    print("正在计算黑马指数 (Breakout Score)...")
+    all_channel_ids = [v['snippet']['channelId'] for v in raw_videos]
+    subs_map = get_channel_subs_batch(youtube, all_channel_ids)
+
+    # 3. 分桶 (增加 Breakout 桶)
+    bucket_breakout = [] # 黑马
     bucket_music = []
     bucket_ent = []
     bucket_content = []
     
-    print(f"原始池 {len(raw_videos)} 个，开始清洗...")
-    
     for v in raw_videos:
-        # A. 过滤 Shorts
         if get_seconds(v['contentDetails'].get('duration', '')) < 60: continue
-        # B. 过滤 黑名单
         cat = v['snippet'].get('categoryId', '0')
         if cat in ['1', '20', '25']: continue
         
-        # C. 数据准备
+        # 数据填充
         v['like_cnt'] = int(v['statistics'].get('likeCount', 0))
+        v['view_cnt'] = int(v['statistics'].get('viewCount', 0))
+        cid = v['snippet']['channelId']
+        subs = subs_map.get(cid, 10000000)
+        
+        # 计算出圈倍率 (播放量 / 粉丝数)
+        # 如果播放量 > 粉丝数 * 3 (倍率>3)，且播放量本身不低(>5万)，视为黑马
+        viral_ratio = v['view_cnt'] / subs
+        v['viral_ratio'] = viral_ratio
+        
         thumbs = v['snippet']['thumbnails']
         v['cover'] = thumbs.get('maxres', thumbs.get('high', thumbs.get('medium')))['url']
         
-        # D. 归类
-        if cat == '10': bucket_music.append(v)
+        # 优先进黑马桶
+        if viral_ratio > 3.0 and v['view_cnt'] > 50000:
+            bucket_breakout.append(v)
+        # 否则进普通分类
+        elif cat == '10': bucket_music.append(v)
         elif cat == '24': bucket_ent.append(v)
         else: bucket_content.append(v)
 
-    # 3. 排序与截断
+    # 4. 排序与截断
+    # 黑马按倍率排
+    bucket_breakout.sort(key=lambda x: x['viral_ratio'], reverse=True)
+    final_breakout = bucket_breakout[:8] # 取前8个最狠的黑马
+
+    # 其他按点赞排
     bucket_music.sort(key=lambda x: x['like_cnt'], reverse=True)
     bucket_ent.sort(key=lambda x: x['like_cnt'], reverse=True)
     bucket_content.sort(key=lambda x: x['like_cnt'], reverse=True)
     
-    final_music = bucket_music[:7]     # 7个 MV
-    final_ent = bucket_ent[:5]         # 5个 挑战
-    final_content = bucket_content[:35] # 35个 优质内容
+    final_music = bucket_music[:6]
+    final_ent = bucket_ent[:4]
+    final_content = bucket_content[:30]
     
-    # 4. 获取评论 (只给入选的视频获取，节省配额)
+    # 获取神评论
     print("正在获取神评论...")
-    all_selected = final_music + final_ent + final_content
+    all_selected = final_breakout + final_music + final_ent + final_content
     for v in all_selected:
         attach_hot_comment(youtube, v)
         
-    return final_music, final_ent, final_content
+    return final_breakout, final_music, final_ent, final_content
 
-# --- 品牌/博主抓取 (复用) ---
 def fetch_channel_videos(youtube, channel_ids):
     videos = []
     for i in range(0, len(channel_ids), 50):
@@ -148,10 +194,12 @@ def fetch_channel_videos(youtube, channel_ids):
                     v_data = {'id': vid['snippet']['resourceId']['videoId'], 'snippet': vid['snippet']}
                     thumbs = vid['snippet']['thumbnails']
                     v_data['cover'] = thumbs.get('maxres', thumbs.get('high', thumbs.get('medium')))['url']
+                    org = vid['snippet']['title']
+                    zh = translate_text(org)
+                    v_data['title_dual'] = {'zh': zh, 'org': org}
                     videos.append(v_data)
         except: pass
         
-    # 补全数据
     final_videos = []
     vids = [v['id'] for v in videos]
     for i in range(0, len(vids), 50):
@@ -166,8 +214,8 @@ def fetch_channel_videos(youtube, channel_ids):
         except: pass
     return final_videos
 
-# --- 网页生成 (分层布局版) ---
-def generate_html(music, ent, content, brands, creators):
+# --- 网页生成 (新布局：黑马置顶 + 悬浮UI) ---
+def generate_html(breakout, music, ent, content, brands, creators):
     today_str = get_beijing_time_str()
     
     html = f"""
@@ -178,88 +226,96 @@ def generate_html(music, ent, content, brands, creators):
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>VISION | Daily</title>
         <style>
-            :root {{ --bg: #050505; --text: #e5e5e5; --accent: #ff3b30; }}
+            :root {{ --bg: #0a0a0a; --text: #f0f0f0; --accent: #ff4757; --glass: rgba(0,0,0,0.7); }}
             body {{ background: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif; margin: 0; padding-bottom: 100px; }}
             
-            header {{ padding: 60px 20px 40px; text-align: center; }}
-            h1 {{ margin: 0; font-size: 3rem; font-weight: 800; letter-spacing: -1px; }}
-            .date {{ color: #666; font-size: 0.8rem; margin-top: 10px; letter-spacing: 2px; text-transform: uppercase; }}
-            
-            .nav {{ display: flex; justify-content: center; gap: 30px; padding: 20px; border-bottom: 1px solid #222; position: sticky; top: 0; background: rgba(5,5,5,0.95); z-index: 99; overflow-x: auto; }}
-            .btn {{ background: none; border: none; color: #666; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: 0.3s; }}
-            .btn:hover, .btn.active {{ color: #fff; }}
+            header {{ padding: 60px 20px 20px; text-align: center; }}
+            h1 {{ margin: 0; font-size: 3.5rem; font-weight: 900; letter-spacing: -2px; color: #fff; }}
+            .date {{ color: #666; font-size: 0.8rem; margin-top: 10px; letter-spacing: 4px; text-transform: uppercase; }}
             
             .container {{ max-width: 1600px; margin: 0 auto; padding: 20px; }}
-            .tab {{ display: none; animation: fade 0.6s; }}
-            .tab.active {{ display: block; }}
-            @keyframes fade {{ from {{opacity:0; transform:translateY(20px);}} to {{opacity:1; transform:translateY(0);}} }}
             
-            /* 分区标题 */
-            .section-title {{ display: flex; align-items: center; margin: 60px 0 30px; font-size: 1.5rem; font-weight: 700; color: #fff; }}
-            .section-title::before {{ content: ''; width: 4px; height: 24px; background: var(--accent); margin-right: 15px; border-radius: 2px; }}
+            /* 板块标题 */
+            .section-header {{ display: flex; align-items: center; margin: 60px 0 30px; border-bottom: 1px solid #333; padding-bottom: 10px; }}
+            .section-title {{ font-size: 1.8rem; font-weight: 800; color: #fff; margin-right: 15px; }}
+            .section-tag {{ background: var(--accent); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }}
             
-            .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 40px 30px; }}
+            /* 网格布局 */
+            .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }}
+            .grid-wide {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 30px; }} /* 黑马榜卡片大一点 */
             
-            /* 卡片样式 */
-            .card {{ position: relative; }}
-            .vid-wrap {{ position: relative; padding-bottom: 56.25%; background: #111; border-radius: 8px; overflow: hidden; cursor: pointer; transition: transform 0.3s; }}
-            .vid-wrap:hover {{ transform: scale(1.02); z-index: 10; }}
-            .vid-wrap img {{ position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; opacity: 0.9; }}
-            .vid-wrap:hover img {{ opacity: 1; }}
+            /* 高级悬浮卡片 */
+            .card {{ position: relative; border-radius: 12px; overflow: hidden; background: #111; transition: transform 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }}
+            .card:hover {{ transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.5); }}
             
-            /* 国旗标签 */
-            .flag-badge {{ position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px; font-size: 1.2rem; backdrop-filter: blur(4px); z-index: 2; }}
+            /* 封面区域 */
+            .cover-wrap {{ position: relative; padding-bottom: 56.25%; cursor: pointer; }}
+            .cover-wrap img {{ position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; transition: opacity 0.3s; }}
+            .card:hover .cover-wrap img {{ opacity: 0.8; }}
             
-            /* 播放按钮 */
-            .play-icon {{ position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: rgba(0,0,0,0.5); border-radius: 50%; border: 2px solid #fff; display: flex; justify-content: center; align-items: center; opacity: 0.8; }}
-            .play-icon::after {{ content: ''; border: 8px solid transparent; border-left: 12px solid #fff; margin-left: 4px; }}
+            /* 播放按钮 (居中) */
+            .play-btn {{ position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); opacity: 0; transition: all 0.3s; width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; }}
+            .play-btn::after {{ content: ''; border: 10px solid transparent; border-left: 16px solid #fff; margin-left: 6px; }}
+            .card:hover .play-btn {{ opacity: 1; transform: translate(-50%, -50%) scale(1); }}
+
+            /* 右上角悬浮标 (Pinterest Style) */
+            .badge-top-right {{ 
+                position: absolute; top: 12px; right: 12px; 
+                display: flex; flex-direction: column; gap: 6px; align-items: flex-end;
+                z-index: 5;
+            }}
+            .badge-item {{ background: var(--glass); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; color: #fff; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1); font-weight: 500; display: flex; align-items: center; gap: 5px; }}
             
-            .info {{ padding-top: 12px; }}
-            .title {{ font-weight: 600; font-size: 0.95rem; margin-bottom: 6px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }}
-            .meta {{ color: #888; font-size: 0.8rem; display: flex; justify-content: space-between; margin-bottom: 8px; }}
-            
-            /* 神评论样式 */
-            .comment {{ font-size: 0.8rem; color: #666; background: #111; padding: 8px 12px; border-radius: 6px; line-height: 1.4; font-style: italic; border-left: 2px solid #333; }}
-            .comment::before {{ content: '“'; color: #444; margin-right: 4px; }}
+            /* 标题区域 */
+            .meta-box {{ padding: 15px; }}
+            .title-zh {{ font-weight: 700; font-size: 1rem; color: #fff; margin-bottom: 4px; line-height: 1.4; }}
+            .title-org {{ font-size: 0.8rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
+            .channel-name {{ margin-top: 10px; font-size: 0.8rem; color: #888; font-weight: 500; display: flex; align-items: center; gap: 5px; }}
+            .channel-name::before {{ content: ''; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; display: inline-block; }}
+
         </style>
     </head>
     <body>
         <header>
             <h1>VISION</h1>
-            <div class="date">{today_str} • WORLD EDITION</div>
+            <div class="date">{today_str} • CURATED DAILY</div>
         </header>
-        <nav class="nav">
-            <button class="btn active" onclick="show('global', this)">Global Trends</button>
-            <button class="btn" onclick="show('brands', this)">Brand Zone</button>
-            <button class="btn" onclick="show('creators', this)">Creator Zone</button>
-        </nav>
 
         <div class="container">
-            <!-- 全球趋势：分层展示 -->
-            <div id="global" class="tab active">
-                
-                <div class="section-title">🎵 Top Music Videos (全球热播MV)</div>
-                <div class="grid">{render_section(music, 'music')}</div>
-                
-                <div class="section-title">🎪 Viral Challenges (挑战与娱乐)</div>
-                <div class="grid">{render_section(ent, 'ent')}</div>
-                
-                <div class="section-title">💡 Must-Watch Stories (精选优质内容)</div>
-                <div class="grid">{render_section(content, 'content')}</div>
-                
+            
+            <!-- 1. 黑马榜 (Breakout) -->
+            <div class="section-header">
+                <div class="section-title">🚀 Breakout Hits</div>
+                <div class="section-tag">VIRAL & TRENDING</div>
+            </div>
+            <div class="grid-wide">{render_cards(breakout, 'breakout')}</div>
+
+            <!-- 2. 分类精选 -->
+            <div class="section-header">
+                <div class="section-title">📺 YouTube Categories</div>
+            </div>
+            
+            <h3 style="color:#666; margin: 30px 0 15px;">🎵 Top Music</h3>
+            <div class="grid">{render_cards(music, 'music')}</div>
+            
+            <h3 style="color:#666; margin: 40px 0 15px;">🎪 Entertainment</h3>
+            <div class="grid">{render_cards(ent, 'ent')}</div>
+            
+            <h3 style="color:#666; margin: 40px 0 15px;">💡 Deep Dive</h3>
+            <div class="grid">{render_cards(content, 'content')}</div>
+
+            <!-- 3. 雷达区 -->
+            <div class="section-header">
+                <div class="section-title">💎 Radar Zone</div>
+                <div class="section-tag">FOLLOWING</div>
+            </div>
+            <div class="grid">
+                {render_cards(brands + creators, 'radar')}
             </div>
 
-            <div id="brands" class="tab"><div class="grid">{render_section(brands, 'brand')}</div></div>
-            <div id="creators" class="tab"><div class="grid">{render_section(creators, 'creator')}</div></div>
         </div>
 
         <script>
-            function show(id, btn) {{
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
-                document.getElementById(id).classList.add('active');
-                btn.classList.add('active');
-            }}
             function play(wrap, id) {{
                 wrap.innerHTML = '<iframe src="https://www.youtube.com/embed/'+id+'?autoplay=1" allow="autoplay; fullscreen" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"></iframe>';
             }}
@@ -270,34 +326,47 @@ def generate_html(music, ent, content, brands, creators):
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html)
 
-def render_section(videos, type):
-    if not videos: return "<p style='color:#444'>Loading...</p>"
+def render_cards(videos, type):
+    if not videos: return "<p style='color:#444'>Searching for data...</p>"
     html = ""
     for v in videos:
-        # 国旗逻辑
-        flag_html = f"<div class='flag-badge'>{v['region_flag']}</div>" if 'region_flag' in v else ""
-        # 评论逻辑
-        comment_html = f"<div class='comment'>{v['hot_comment']}</div>" if v.get('hot_comment') else ""
-        
-        # 数据显示
+        # 1. 右上角悬浮信息
+        badges_html = ""
+        # 国旗
+        if 'region_flag' in v:
+            badges_html += f"<div class='badge-item'>{v['region_flag']} Region</div>"
+        # 热评
+        if v.get('hot_comment'):
+             badges_html += f"<div class='badge-item'>💬 {v['hot_comment']}</div>"
+        # 黑马倍率
+        if type == 'breakout' and 'viral_ratio' in v:
+             badges_html += f"<div class='badge-item' style='color:#ffdd59'>⚡ {round(v['viral_ratio'], 1)}x Viral</div>"
+
+        # 2. 统计数据
         s = v.get('statistics', {})
-        cnt = int(s.get('viewCount', 0)) if type=='brand' else int(s.get('likeCount', 0))
-        label = f"👁️ {round(cnt/1000,1)}K" if type=='brand' else f"♥ {round(cnt/1000,1)}K"
+        view_cnt = int(s.get('viewCount', 0))
+        label_view = f"{round(view_cnt/1000, 1)}K Views"
         
+        # 3. 标题
+        t_zh = v.get('title_dual', {}).get('zh', v['snippet']['title'])
+        t_org = v.get('title_dual', {}).get('org', '')
+        if t_zh == t_org: t_org = ""
+
         html += f"""
         <div class="card">
-            <div class="vid-wrap" onclick="play(this, '{v['id']}')">
+            <div class="cover-wrap" onclick="play(this, '{v['id']}')">
                 <img src="{v.get('cover')}" loading="lazy">
-                {flag_html}
-                <div class="play-icon"></div>
-            </div>
-            <div class="info">
-                <div class="title">{v['snippet']['title']}</div>
-                <div class="meta">
-                    <span>{v['snippet']['channelTitle']}</span>
-                    <span>{label}</span>
+                <div class="badge-top-right">
+                    {badges_html}
                 </div>
-                {comment_html}
+                <div class="play-btn"></div>
+            </div>
+            <div class="meta-box">
+                <div class="title-zh">{t_zh}</div>
+                <div class="title-org">{t_org}</div>
+                <div class="channel-name">
+                    {v['snippet']['channelTitle']} • {label_view}
+                </div>
             </div>
         </div>
         """
@@ -307,14 +376,14 @@ def main():
     youtube = get_youtube_service()
     if not youtube: return
     
-    # 1. 抓取分层全球数据
-    music, ent, content = fetch_categorized_global_pool(youtube)
+    # 1. 抓取全球数据 (含黑马计算)
+    breakout, music, ent, content = fetch_categorized_global_pool(youtube)
     
     # 2. 抓取关注列表
     brands = fetch_channel_videos(youtube, BRAND_CHANNELS)
     creators = fetch_channel_videos(youtube, CREATOR_CHANNELS)
     
-    generate_html(music, ent, content, brands, creators)
+    generate_html(breakout, music, ent, content, brands, creators)
 
 if __name__ == "__main__":
     main()
