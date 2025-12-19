@@ -2,20 +2,20 @@ name: Update Video Website
 
 on:
   schedule:
-    - cron: '18 22 * * *' # 每天定时跑
-  workflow_dispatch:     # 允许手动按钮跑
-  push:                  # <--- 新增这行：一提交代码就跑
+    - cron: '15 22 * * *' # 北京时间每天早上 06:15 运行
+  workflow_dispatch:      # 允许手动按钮运行
+  push:
     paths:
-      - 'main.py'        # <--- 指定：只有改了 main.py 才跑，改别的不管
+      - 'main.py'         # 修改 main.py 时自动运行
 
 permissions:
-  contents: write # 必须显式开启写权限
+  contents: write
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Set up Python
@@ -23,20 +23,22 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Install Libraries
-        run: pip install google-api-python-client
+      # --- 关键修改在这里 ---
+      # 我们增加了 deep-translator 的安装命令
+      - name: Install dependencies
+        run: |
+          pip install google-api-python-client
+          pip install deep-translator
 
-      - name: Run Script
+      - name: Run Update Script
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: python main.py
 
-      - name: Commit and Push
+      - name: Commit and Push changes
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
-          # 强制更新 index.html，即使内容变化不大
           git add index.html
-          # 加上当前时间戳，确保每次运行都有 commit，防止 GitHub 觉得没变化而不更新
-          git commit -m "Auto-update: $(date)" || echo "No changes to commit"
+          git commit -m "Auto-update: Global Trends" || echo "No changes to commit"
           git push
