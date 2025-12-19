@@ -4,7 +4,7 @@ on:
   schedule:
     # 稍微错开整点，避开 GitHub 服务器的高峰期
     # 这里设置的是 UTC 22:15，约北京时间次日 06:15
-    - cron: '15 22 * * *'
+    - cron: '0 23 * * *'
   workflow_dispatch: # 允许手动点击运行
 
 permissions:
