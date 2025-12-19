@@ -4,30 +4,51 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>VISION | Global Curated</title>
+        <title>VISION | Daily</title>
         <style>
-            :root { --bg: #050505; --card: #141414; --text: #e5e5e5; --accent: #fff; }
-            body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, Roboto, sans-serif; margin: 0; }
-            header { padding: 80px 20px 50px; text-align: center; background: radial-gradient(circle at top, #1a1a1a 0%, #050505 80%); }
-            h1 { margin: 0; font-size: 3rem; letter-spacing: -2px; font-weight: 800; background: linear-gradient(to right, #fff, #999); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-            .date { color: #666; font-size: 0.8rem; margin-top: 15px; letter-spacing: 3px; text-transform: uppercase; }
-            .nav { display: flex; justify-content: center; gap: 30px; padding: 20px; border-bottom: 1px solid #222; position: sticky; top: 0; background: rgba(5,5,5,0.95); backdrop-filter: blur(10px); z-index: 99; overflow-x: auto; }
-            .btn { background: none; border: none; color: #666; cursor: pointer; font-size: 0.9rem; padding: 10px 15px; font-weight: 600; white-space: nowrap; transition: 0.3s; }
+            :root { --bg: #050505; --text: #e5e5e5; --accent: #ff3b30; }
+            body { background: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif; margin: 0; padding-bottom: 100px; }
+            
+            header { padding: 60px 20px 40px; text-align: center; }
+            h1 { margin: 0; font-size: 3rem; font-weight: 800; letter-spacing: -1px; }
+            .date { color: #666; font-size: 0.8rem; margin-top: 10px; letter-spacing: 2px; text-transform: uppercase; }
+            
+            .nav { display: flex; justify-content: center; gap: 30px; padding: 20px; border-bottom: 1px solid #222; position: sticky; top: 0; background: rgba(5,5,5,0.95); z-index: 99; overflow-x: auto; }
+            .btn { background: none; border: none; color: #666; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: 0.3s; }
             .btn:hover, .btn.active { color: #fff; }
-            .btn.active { border-bottom: 2px solid #fff; }
-            .container { max-width: 1600px; margin: 0 auto; padding: 40px 20px; min-height: 80vh; }
-            .tab { display: none; }
-            .tab.active { display: block; animation: fade 0.6s; }
-            @keyframes fade { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
-            .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 40px 30px; }
-            .card { background: transparent; transition: 0.3s; }
-            .card:hover .vid { transform: scale(1.03); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
-            .vid { position: relative; padding-bottom: 56.25%; background: #111; border-radius: 8px; overflow: hidden; }
-            .vid iframe { position: absolute; top:0; left:0; width:100%; height:100%; border:0; }
-            .info { padding-top: 15px; }
-            .title { font-weight: 600; font-size: 1rem; margin-bottom: 8px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-            .meta { color: #888; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
-            .hl { color: #fff; font-weight: bold; background: #222; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
+            
+            .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
+            .tab { display: none; animation: fade 0.6s; }
+            .tab.active { display: block; }
+            @keyframes fade { from {opacity:0; transform:translateY(20px);} to {opacity:1; transform:translateY(0);} }
+            
+            /* 分区标题 */
+            .section-title { display: flex; align-items: center; margin: 60px 0 30px; font-size: 1.5rem; font-weight: 700; color: #fff; }
+            .section-title::before { content: ''; width: 4px; height: 24px; background: var(--accent); margin-right: 15px; border-radius: 2px; }
+            
+            .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 40px 30px; }
+            
+            /* 卡片样式 */
+            .card { position: relative; }
+            .vid-wrap { position: relative; padding-bottom: 56.25%; background: #111; border-radius: 8px; overflow: hidden; cursor: pointer; transition: transform 0.3s; }
+            .vid-wrap:hover { transform: scale(1.02); z-index: 10; }
+            .vid-wrap img { position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; opacity: 0.9; }
+            .vid-wrap:hover img { opacity: 1; }
+            
+            /* 国旗标签 */
+            .flag-badge { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px; font-size: 1.2rem; backdrop-filter: blur(4px); z-index: 2; }
+            
+            /* 播放按钮 */
+            .play-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: rgba(0,0,0,0.5); border-radius: 50%; border: 2px solid #fff; display: flex; justify-content: center; align-items: center; opacity: 0.8; }
+            .play-icon::after { content: ''; border: 8px solid transparent; border-left: 12px solid #fff; margin-left: 4px; }
+            
+            .info { padding-top: 12px; }
+            .title { font-weight: 600; font-size: 0.95rem; margin-bottom: 6px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+            .meta { color: #888; font-size: 0.8rem; display: flex; justify-content: space-between; margin-bottom: 8px; }
+            
+            /* 神评论样式 */
+            .comment { font-size: 0.8rem; color: #666; background: #111; padding: 8px 12px; border-radius: 6px; line-height: 1.4; font-style: italic; border-left: 2px solid #333; }
+            .comment::before { content: '“'; color: #444; margin-right: 4px; }
         </style>
     </head>
     <body>
@@ -36,591 +57,679 @@
             <div class="date">2025-12-19 • WORLD EDITION</div>
         </header>
         <nav class="nav">
-            <button class="btn active" onclick="show('likes', this)">Curated Top Liked</button>
-            <button class="btn" onclick="show('comments', this)">Curated Discussed</button>
+            <button class="btn active" onclick="show('global', this)">Global Trends</button>
             <button class="btn" onclick="show('brands', this)">Brand Zone</button>
             <button class="btn" onclick="show('creators', this)">Creator Zone</button>
         </nav>
+
         <div class="container">
-            <div id="likes" class="tab active"><div class="grid">
+            <!-- 全球趋势：分层展示 -->
+            <div id="global" class="tab active">
+                
+                <div class="section-title">🎵 Top Music Videos (全球热播MV)</div>
+                <div class="grid">
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/hcNVG7JCxoE" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Dekhlenge Saala Lyrical Video | Ustaad Bhagat Singh | Pawan Kalyan | Harish Shankar| Devi Sri Prasad</div>
-                <div class="meta"><span>Sony Music South</span><span class="hl">♥ 565.6K</span></div>
+            <div class="vid-wrap" onclick="play(this, 'nvmc2ECk8Lo')">
+                <img src="https://i.ytimg.com/vi/nvmc2ECk8Lo/maxresdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇬🇧</div>
+                <div class="play-icon"></div>
             </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/e0Eo0D038rQ" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Stranger Things 5 | Volume 2 Trailer | Netflix</div>
-                <div class="meta"><span>Netflix</span><span class="hl">♥ 549.5K</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/nvmc2ECk8Lo" loading="lazy" allowfullscreen></iframe></div>
             <div class="info">
                 <div class="title">BORDER 2 (Teaser): Sunny Deol, Varun D, Diljit, Ahan | Anurag S | JP Dutta, Bhushan K | 23-Jan-2026</div>
-                <div class="meta"><span>T-Series</span><span class="hl">♥ 525.7K</span></div>
+                <div class="meta">
+                    <span>T-Series</span>
+                    <span>♥ 526.0K</span>
+                </div>
+                <div class='comment'>Awaaz kahan tak jaani chahiye... 🇮🇳🔥? This #VijayDiwas, c...</div>
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/YqdAEdkHrwo" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Supergirl | Official Teaser Trailer</div>
-                <div class="meta"><span>DC</span><span class="hl">♥ 374.2K</span></div>
+            <div class="vid-wrap" onclick="play(this, '04GSqsX0S50')">
+                <img src="https://i.ytimg.com/vi/04GSqsX0S50/maxresdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇹🇼</div>
+                <div class="play-icon"></div>
             </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/04GSqsX0S50" loading="lazy" allowfullscreen></iframe></div>
             <div class="info">
                 <div class="title">[COVER] DK X SEUNGKWAN - Die With A Smile (Original Song : Lady Gaga, Bruno Mars)</div>
-                <div class="meta"><span>SEVENTEEN</span><span class="hl">♥ 292.5K</span></div>
+                <div class="meta">
+                    <span>SEVENTEEN</span>
+                    <span>♥ 292.8K</span>
+                </div>
+                <div class='comment'>"when i hear seungkwan hyung and dokyeom hyung singing rea...</div>
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/cQb4UxF7DL8" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, 'cQb4UxF7DL8')">
+                <img src="https://i.ytimg.com/vi/cQb4UxF7DL8/maxresdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇦🇺</div>
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
                 <div class="title">BALEN - AAM NEPALI BUWAA (OST JHARI PACHHI KO INDRENI)</div>
-                <div class="meta"><span>Balen</span><span class="hl">♥ 243.4K</span></div>
+                <div class="meta">
+                    <span>Balen</span>
+                    <span>♥ 243.6K</span>
+                </div>
+                <div class='comment'>कुनै झोले दाशहरुले बालेन शाहलाई गलत साबित गर्न खोज्दैमा गल...</div>
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/Faz9JxpdHp4" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, 'Faz9JxpdHp4')">
+                <img src="https://i.ytimg.com/vi/Faz9JxpdHp4/maxresdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇦🇺</div>
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
                 <div class="title">P Pop Culture (MUSIC VIDEO) KARAN AUJLA | Ikky | Latest Punjabi Songs 2025</div>
-                <div class="meta"><span>Karan Aujla</span><span class="hl">♥ 207.9K</span></div>
+                <div class="meta">
+                    <span>Karan Aujla</span>
+                    <span>♥ 208.0K</span>
+                </div>
+                <div class='comment'>Better VFX then Adipurush</div>
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/VVB6FI8QTFg" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, 'VVB6FI8QTFg')">
+                <img src="https://i.ytimg.com/vi/VVB6FI8QTFg/hqdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇦🇺</div>
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
                 <div class="title">Backstreet Boys - I Want It That Way (2025 Version)</div>
-                <div class="meta"><span>Backstreet Boys</span><span class="hl">♥ 173.3K</span></div>
+                <div class="meta">
+                    <span>Backstreet Boys</span>
+                    <span>♥ 174.2K</span>
+                </div>
+                <div class='comment'>What makes us happy is after one quarter century, no one i...</div>
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/GkTWxDB21cA" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, 'GkTWxDB21cA')">
+                <img src="https://i.ytimg.com/vi/GkTWxDB21cA/maxresdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇺🇸</div>
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
                 <div class="title">ROSALÍA - La Perla (Official Video) ft. Yahritza Y Su Esencia</div>
-                <div class="meta"><span>RosaliaVEVO</span><span class="hl">♥ 169.6K</span></div>
+                <div class="meta">
+                    <span>RosaliaVEVO</span>
+                    <span>♥ 170.0K</span>
+                </div>
+                <div class='comment'>Quería que nos sintiéramos decepcionados del video, así co...</div>
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/u6H0F0YeySo" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, '827HSYJX5uw')">
+                <img src="https://i.ytimg.com/vi/827HSYJX5uw/maxresdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇹🇼</div>
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
-                <div class="title">45 Official Trailer Kannada | Dr.Shivarajkumar | Upendra | Raj B Shetty | Arjun Janya | Suraj</div>
-                <div class="meta"><span>Anand Audio</span><span class="hl">♥ 120.6K</span></div>
+                <div class="title">DENNY CAKNAN - TUNGGAL EKA  (Official Music Video)</div>
+                <div class="meta">
+                    <span>DENNY CAKNAN</span>
+                    <span>♥ 129.6K</span>
+                </div>
+                <div class='comment'>Kami sebagai anggota COD neng omahe DC mengucapkan selamat...</div>
             </div>
         </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/pHnMNFnG_dY" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Long Slide Game with Cow Elephant Gorilla Hippopotamus Tiger 3d Animal Game Funny 3d Animals</div>
-                <div class="meta"><span>UltraLogic Media</span><span class="hl">♥ 104.4K</span></div>
-            </div>
         </div>
-        
+                
+                <div class="section-title">🎪 Viral Challenges (挑战与娱乐)</div>
+                <div class="grid">
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/UFe6NRgoXCM" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Disclosure Day | Official Teaser</div>
-                <div class="meta"><span>Universal Pictures</span><span class="hl">♥ 91.4K</span></div>
+            <div class="vid-wrap" onclick="play(this, 'e0Eo0D038rQ')">
+                <img src="https://i.ytimg.com/vi/e0Eo0D038rQ/maxresdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇺🇸</div>
+                <div class="play-icon"></div>
             </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/GqR2FG3G810" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Stranger Things 5 | Trailer - Volume 2 | Netflix</div>
-                <div class="meta"><span>Netflix Brasil</span><span class="hl">♥ 83.9K</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/l4_5UnIekUM" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">SIDEMEN WORLDS SMALLEST GTA RACE</div>
-                <div class="meta"><span>MoreSidemen</span><span class="hl">♥ 48.3K</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/X9Zos9Fx_VI" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Australia v England 2025-26 | Third #Ashes Test | Day One</div>
-                <div class="meta"><span>cricket.com.au</span><span class="hl">♥ 47.1K</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/c0nCZL7WxWI" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">I BOUGHT AMAZING GAMING GADGETS FROM AMAZON</div>
-                <div class="meta"><span>TechShot</span><span class="hl">♥ 38.5K</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/Tno5qYDssfg" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">&TEAM 'Go in Blind' @ BEST HITS 2025</div>
-                <div class="meta"><span>&TEAM</span><span class="hl">♥ 8.1K</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/BJ-f3x2cOqM" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Los Del Río - Macarena (Letra/Lyrics)</div>
-                <div class="meta"><span>Velada</span><span class="hl">♥ 2.9K</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/5J0wl1rvmgk" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Python Loco - Harag 5 feat La Plaie ( Clip Officiel )</div>
-                <div class="meta"><span>Python Loco</span><span class="hl">♥ 2.9K</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/EjzAnGmErxA" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Eros Ramazzotti - Cosas De La Vida (letra)</div>
-                <div class="meta"><span>Sabor a Manzana</span><span class="hl">♥ 1.1K</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/7AI_vwV4h9w" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">2026.2.13春節上映｜電影《功夫》官方前導預告｜Kung Fu Official Teaser Trailer</div>
-                <div class="meta"><span>功夫</span><span class="hl">♥ 1.1K</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/D-L5vXOkN_M" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">ZYREX - No Role Modelz (Original Mix)</div>
-                <div class="meta"><span>ZYREX</span><span class="hl">♥ 965</span></div>
-            </div>
-        </div>
-        </div></div>
-            <div id="comments" class="tab"><div class="grid">
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/nvmc2ECk8Lo" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">BORDER 2 (Teaser): Sunny Deol, Varun D, Diljit, Ahan | Anurag S | JP Dutta, Bhushan K | 23-Jan-2026</div>
-                <div class="meta"><span>T-Series</span><span class="hl">💬 33.2K</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/e0Eo0D038rQ" loading="lazy" allowfullscreen></iframe></div>
             <div class="info">
                 <div class="title">Stranger Things 5 | Volume 2 Trailer | Netflix</div>
-                <div class="meta"><span>Netflix</span><span class="hl">💬 22.7K</span></div>
+                <div class="meta">
+                    <span>Netflix</span>
+                    <span>♥ 549.7K</span>
+                </div>
+                <div class='comment'>Steve: you die, i die Dustin: you die, i die Me: Both of y...</div>
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/YqdAEdkHrwo" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Supergirl | Official Teaser Trailer</div>
-                <div class="meta"><span>DC</span><span class="hl">💬 20.9K</span></div>
+            <div class="vid-wrap" onclick="play(this, 'u6H0F0YeySo')">
+                <img src="https://i.ytimg.com/vi/u6H0F0YeySo/maxresdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇮🇳</div>
+                <div class="play-icon"></div>
             </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/cQb4UxF7DL8" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">BALEN - AAM NEPALI BUWAA (OST JHARI PACHHI KO INDRENI)</div>
-                <div class="meta"><span>Balen</span><span class="hl">💬 17.6K</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/04GSqsX0S50" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">[COVER] DK X SEUNGKWAN - Die With A Smile (Original Song : Lady Gaga, Bruno Mars)</div>
-                <div class="meta"><span>SEVENTEEN</span><span class="hl">💬 17.0K</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/VVB6FI8QTFg" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Backstreet Boys - I Want It That Way (2025 Version)</div>
-                <div class="meta"><span>Backstreet Boys</span><span class="hl">💬 13.5K</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/Faz9JxpdHp4" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">P Pop Culture (MUSIC VIDEO) KARAN AUJLA | Ikky | Latest Punjabi Songs 2025</div>
-                <div class="meta"><span>Karan Aujla</span><span class="hl">💬 11.8K</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/hcNVG7JCxoE" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Dekhlenge Saala Lyrical Video | Ustaad Bhagat Singh | Pawan Kalyan | Harish Shankar| Devi Sri Prasad</div>
-                <div class="meta"><span>Sony Music South</span><span class="hl">💬 11.4K</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/UFe6NRgoXCM" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Disclosure Day | Official Teaser</div>
-                <div class="meta"><span>Universal Pictures</span><span class="hl">💬 10.4K</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/u6H0F0YeySo" loading="lazy" allowfullscreen></iframe></div>
             <div class="info">
                 <div class="title">45 Official Trailer Kannada | Dr.Shivarajkumar | Upendra | Raj B Shetty | Arjun Janya | Suraj</div>
-                <div class="meta"><span>Anand Audio</span><span class="hl">💬 8.4K</span></div>
+                <div class="meta">
+                    <span>Anand Audio</span>
+                    <span>♥ 120.6K</span>
+                </div>
+                <div class='comment'>ಶಿವಣ್ಣನ ಕಣ್ಣು ಉಪ್ಪಿಯ ಕದರು ರಾಜ್ ಬಿ ಶೆಟ್ಟಿಯ ಛಾಯೆ💥💥💥💥💥</div>
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/GkTWxDB21cA" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, 'UFe6NRgoXCM')">
+                <img src="https://i.ytimg.com/vi/UFe6NRgoXCM/maxresdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇺🇸</div>
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
-                <div class="title">ROSALÍA - La Perla (Official Video) ft. Yahritza Y Su Esencia</div>
-                <div class="meta"><span>RosaliaVEVO</span><span class="hl">💬 7.4K</span></div>
+                <div class="title">Disclosure Day | Official Teaser</div>
+                <div class="meta">
+                    <span>Universal Pictures</span>
+                    <span>♥ 91.5K</span>
+                </div>
+                <div class='comment'>That's the sound I make when I look at my bank account</div>
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/GqR2FG3G810" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, 'GqR2FG3G810')">
+                <img src="https://i.ytimg.com/vi/GqR2FG3G810/maxresdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇧🇷</div>
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
                 <div class="title">Stranger Things 5 | Trailer - Volume 2 | Netflix</div>
-                <div class="meta"><span>Netflix Brasil</span><span class="hl">💬 2.8K</span></div>
+                <div class="meta">
+                    <span>Netflix Brasil</span>
+                    <span>♥ 84.0K</span>
+                </div>
+                <div class='comment'>A Nancy foi de patricinha a Rambo 😂😂😂</div>
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/pHnMNFnG_dY" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, '0Dn44z18X2c')">
+                <img src="https://i.ytimg.com/vi/0Dn44z18X2c/maxresdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇯🇵</div>
+                <div class="play-icon"></div>
+            </div>
+            <div class="info">
+                <div class="title">TAKE ACTION covered by 3SKM【歌ってみた】</div>
+                <div class="meta">
+                    <span>3SKM</span>
+                    <span>♥ 36.9K</span>
+                </div>
+                <div class='comment'>低音足りてるよ！！！ 中低音足りてるよ！！！ 中高音足りてるよ！！！ 高音足りてるよ！！！</div>
+            </div>
+        </div>
+        </div>
+                
+                <div class="section-title">💡 Must-Watch Stories (精选优质内容)</div>
+                <div class="grid">
+        <div class="card">
+            <div class="vid-wrap" onclick="play(this, 'pHnMNFnG_dY')">
+                <img src="https://i.ytimg.com/vi/pHnMNFnG_dY/maxresdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇮🇳</div>
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
                 <div class="title">Long Slide Game with Cow Elephant Gorilla Hippopotamus Tiger 3d Animal Game Funny 3d Animals</div>
-                <div class="meta"><span>UltraLogic Media</span><span class="hl">💬 2.0K</span></div>
+                <div class="meta">
+                    <span>UltraLogic Media</span>
+                    <span>♥ 104.4K</span>
+                </div>
+                <div class='comment'>Bhai chennal category kya hai</div>
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/c0nCZL7WxWI" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">I BOUGHT AMAZING GAMING GADGETS FROM AMAZON</div>
-                <div class="meta"><span>TechShot</span><span class="hl">💬 1.8K</span></div>
+            <div class="vid-wrap" onclick="play(this, 'l4_5UnIekUM')">
+                <img src="https://i.ytimg.com/vi/l4_5UnIekUM/maxresdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇬🇧</div>
+                <div class="play-icon"></div>
             </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/X9Zos9Fx_VI" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Australia v England 2025-26 | Third #Ashes Test | Day One</div>
-                <div class="meta"><span>cricket.com.au</span><span class="hl">💬 1.0K</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/l4_5UnIekUM" loading="lazy" allowfullscreen></iframe></div>
             <div class="info">
                 <div class="title">SIDEMEN WORLDS SMALLEST GTA RACE</div>
-                <div class="meta"><span>MoreSidemen</span><span class="hl">💬 786</span></div>
+                <div class="meta">
+                    <span>MoreSidemen</span>
+                    <span>♥ 48.3K</span>
+                </div>
+                <div class='comment'>over a decade, and they still dont know the buttons.</div>
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/7AI_vwV4h9w" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, 'X9Zos9Fx_VI')">
+                <img src="https://i.ytimg.com/vi/X9Zos9Fx_VI/maxresdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇬🇧</div>
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
-                <div class="title">2026.2.13春節上映｜電影《功夫》官方前導預告｜Kung Fu Official Teaser Trailer</div>
-                <div class="meta"><span>功夫</span><span class="hl">💬 561</span></div>
+                <div class="title">Australia v England 2025-26 | Third #Ashes Test | Day One</div>
+                <div class="meta">
+                    <span>cricket.com.au</span>
+                    <span>♥ 47.1K</span>
+                </div>
+                <div class='comment'>Mitchell Starc is something else now with the bat💀</div>
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/5J0wl1rvmgk" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Python Loco - Harag 5 feat La Plaie ( Clip Officiel )</div>
-                <div class="meta"><span>Python Loco</span><span class="hl">💬 338</span></div>
+            <div class="vid-wrap" onclick="play(this, 'Tno5qYDssfg')">
+                <img src="https://i.ytimg.com/vi/Tno5qYDssfg/maxresdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇯🇵</div>
+                <div class="play-icon"></div>
             </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/Tno5qYDssfg" loading="lazy" allowfullscreen></iframe></div>
             <div class="info">
                 <div class="title">&TEAM 'Go in Blind' @ BEST HITS 2025</div>
-                <div class="meta"><span>&TEAM</span><span class="hl">💬 213</span></div>
+                <div class="meta">
+                    <span>&TEAM</span>
+                    <span>♥ 8.1K</span>
+                </div>
+                <div class='comment'>Thank you for the team behind &Team, giving us content con...</div>
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/D-L5vXOkN_M" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, '5J0wl1rvmgk')">
+                <img src="https://i.ytimg.com/vi/5J0wl1rvmgk/maxresdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇫🇷</div>
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
-                <div class="title">ZYREX - No Role Modelz (Original Mix)</div>
-                <div class="meta"><span>ZYREX</span><span class="hl">💬 34</span></div>
+                <div class="title">Python Loco - Harag 5 feat La Plaie ( Clip Officiel )</div>
+                <div class="meta">
+                    <span>Python Loco</span>
+                    <span>♥ 2.9K</span>
+                </div>
+                <div class='comment'>J’ESPÈRE QUE VOUS AVAIT KIFFER LA CONNEXION LA FAMILLE 🇹🇳🇩🇿😈</div>
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/EjzAnGmErxA" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, 'EjzAnGmErxA')">
+                <img src="https://i.ytimg.com/vi/EjzAnGmErxA/maxresdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇫🇷</div>
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
                 <div class="title">Eros Ramazzotti - Cosas De La Vida (letra)</div>
-                <div class="meta"><span>Sabor a Manzana</span><span class="hl">💬 21</span></div>
+                <div class="meta">
+                    <span>Sabor a Manzana</span>
+                    <span>♥ 1.1K</span>
+                </div>
+                <div class='comment'>After all these years still here in December-13 - 2025. My...</div>
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/BJ-f3x2cOqM" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, '7AI_vwV4h9w')">
+                <img src="https://i.ytimg.com/vi/7AI_vwV4h9w/maxresdefault.jpg" loading="lazy">
+                <div class='flag-badge'>🇹🇼</div>
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
-                <div class="title">Los Del Río - Macarena (Letra/Lyrics)</div>
-                <div class="meta"><span>Velada</span><span class="hl">💬 15</span></div>
+                <div class="title">2026.2.13春節上映｜電影《功夫》官方前導預告｜Kung Fu Official Teaser Trailer</div>
+                <div class="meta">
+                    <span>功夫</span>
+                    <span>♥ 1.1K</span>
+                </div>
+                <div class='comment'>不簡單呢 光是預告片就能弄得很難看</div>
             </div>
         </div>
-        </div></div>
+        </div>
+                
+            </div>
+
             <div id="brands" class="tab"><div class="grid">
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/rcd_SQZDlnk" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Starship | Tenth Flight Test</div>
-                <div class="meta"><span>SpaceX</span><span class="hl">PLAY</span></div>
+            <div class="vid-wrap" onclick="play(this, 'J_IomhTi7ms')">
+                <img src="https://i.ytimg.com/vi/J_IomhTi7ms/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
             </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/BYTE4MtR0do" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Fram2 Polar Orbit Views</div>
-                <div class="meta"><span>SpaceX</span><span class="hl">PLAY</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/Pn6e1O5bEyA" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Starship | Seventh Flight Test</div>
-                <div class="meta"><span>SpaceX</span><span class="hl">PLAY</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/_XXThn5p5j0" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Limited Edition Star Wars Smartphone Unboxing</div>
-                <div class="meta"><span>Unbox Therapy</span><span class="hl">PLAY</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/-nAAIcNppeg" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">The Most Powerful Smartphone of the Year?</div>
-                <div class="meta"><span>Unbox Therapy</span><span class="hl">PLAY</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/L2fBJCDEEJk" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">The World’s Thinnest Paper Tablet</div>
-                <div class="meta"><span>Unbox Therapy</span><span class="hl">PLAY</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/nuWAZC11Odo" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Relax with Ambient Music. Tip from David at the Apple Store. #Shorts</div>
-                <div class="meta"><span>Apple</span><span class="hl">PLAY</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/eaRRXk7CzWM" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Send and request cash in Messages. Tip from Eden at the Apple Store. #Shorts</div>
-                <div class="meta"><span>Apple</span><span class="hl">PLAY</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/HGp005A-2mM" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Get your focus back with downtime. Tip from Garryn at the Apple Store. #Shorts</div>
-                <div class="meta"><span>Apple</span><span class="hl">PLAY</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/J_IomhTi7ms" loading="lazy" allowfullscreen></iframe></div>
             <div class="info">
                 <div class="title">Charging Passport</div>
-                <div class="meta"><span>Tesla</span><span class="hl">PLAY</span></div>
+                <div class="meta">
+                    <span>Tesla</span>
+                    <span>👁️ 4.2K</span>
+                </div>
+                
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/bxLgg_FNHj8" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, 'bxLgg_FNHj8')">
+                <img src="https://i.ytimg.com/vi/bxLgg_FNHj8/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
                 <div class="title">Icy to cozy before you finish lacing up your boots</div>
-                <div class="meta"><span>Tesla</span><span class="hl">PLAY</span></div>
+                <div class="meta">
+                    <span>Tesla</span>
+                    <span>👁️ 92.1K</span>
+                </div>
+                
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/_iytMHw6uJY" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, '_iytMHw6uJY')">
+                <img src="https://i.ytimg.com/vi/_iytMHw6uJY/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
                 <div class="title">Powering Chile's Renewable Future | Megapack</div>
-                <div class="meta"><span>Tesla</span><span class="hl">PLAY</span></div>
+                <div class="meta">
+                    <span>Tesla</span>
+                    <span>👁️ 61.5K</span>
+                </div>
+                
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid-wrap" onclick="play(this, 'nuWAZC11Odo')">
+                <img src="https://i.ytimg.com/vi/nuWAZC11Odo/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
+            <div class="info">
+                <div class="title">Relax with Ambient Music. Tip from David at the Apple Store. #Shorts</div>
+                <div class="meta">
+                    <span>Apple</span>
+                    <span>👁️ 15.5K</span>
+                </div>
+                
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid-wrap" onclick="play(this, 'eaRRXk7CzWM')">
+                <img src="https://i.ytimg.com/vi/eaRRXk7CzWM/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
+            <div class="info">
+                <div class="title">Send and request cash in Messages. Tip from Eden at the Apple Store. #Shorts</div>
+                <div class="meta">
+                    <span>Apple</span>
+                    <span>👁️ 43.1K</span>
+                </div>
+                
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid-wrap" onclick="play(this, 'HGp005A-2mM')">
+                <img src="https://i.ytimg.com/vi/HGp005A-2mM/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
+            <div class="info">
+                <div class="title">Get your focus back with downtime. Tip from Garryn at the Apple Store. #Shorts</div>
+                <div class="meta">
+                    <span>Apple</span>
+                    <span>👁️ 447.6K</span>
+                </div>
+                
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid-wrap" onclick="play(this, 'rcd_SQZDlnk')">
+                <img src="https://i.ytimg.com/vi/rcd_SQZDlnk/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
+            <div class="info">
+                <div class="title">Starship | Tenth Flight Test</div>
+                <div class="meta">
+                    <span>SpaceX</span>
+                    <span>👁️ 1405.4K</span>
+                </div>
+                
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid-wrap" onclick="play(this, 'BYTE4MtR0do')">
+                <img src="https://i.ytimg.com/vi/BYTE4MtR0do/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
+            <div class="info">
+                <div class="title">Fram2 Polar Orbit Views</div>
+                <div class="meta">
+                    <span>SpaceX</span>
+                    <span>👁️ 162.9K</span>
+                </div>
+                
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid-wrap" onclick="play(this, 'Pn6e1O5bEyA')">
+                <img src="https://i.ytimg.com/vi/Pn6e1O5bEyA/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
+            <div class="info">
+                <div class="title">Starship | Seventh Flight Test</div>
+                <div class="meta">
+                    <span>SpaceX</span>
+                    <span>👁️ 1419.2K</span>
+                </div>
+                
             </div>
         </div>
         </div></div>
             <div id="creators" class="tab"><div class="grid">
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/eIBEK-_NMJc" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Primitive Technology: Grate furnace, wood fired smelting experiment</div>
-                <div class="meta"><span>Primitive Technology</span><span class="hl">PLAY</span></div>
+            <div class="vid-wrap" onclick="play(this, 'bVjKL1zd-vQ')">
+                <img src="https://i.ytimg.com/vi/bVjKL1zd-vQ/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
             </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/UqJHfTkvVY4" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Primitive Technology: Wood ash & crushed terracotta mortar</div>
-                <div class="meta"><span>Primitive Technology</span><span class="hl">PLAY</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/y8o7qkmiDso" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Primitive Technology: Double water bellows</div>
-                <div class="meta"><span>Primitive Technology</span><span class="hl">PLAY</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/fO5FwBcCJBY" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">Would You Date Him for $10,000?</div>
-                <div class="meta"><span>MrBeast</span><span class="hl">PLAY</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/U-x6KxH1kB4" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">How Many People to Pull a Plane?</div>
-                <div class="meta"><span>MrBeast</span><span class="hl">PLAY</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/8bMh8azh3CY" loading="lazy" allowfullscreen></iframe></div>
-            <div class="info">
-                <div class="title">100 Pilots Fight For A Private Jet</div>
-                <div class="meta"><span>MrBeast</span><span class="hl">PLAY</span></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/bVjKL1zd-vQ" loading="lazy" allowfullscreen></iframe></div>
             <div class="info">
                 <div class="title">Was Alexander the Great really that great? - Stephanie Honchell Smith</div>
-                <div class="meta"><span>TED-Ed</span><span class="hl">PLAY</span></div>
+                <div class="meta">
+                    <span>TED-Ed</span>
+                    <span>♥ 2.4K</span>
+                </div>
+                
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/0RiDPisQAzM" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, '0RiDPisQAzM')">
+                <img src="https://i.ytimg.com/vi/0RiDPisQAzM/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
                 <div class="title">How does light therapy help treat seasonal depression? - Kelly Rohan</div>
-                <div class="meta"><span>TED-Ed</span><span class="hl">PLAY</span></div>
+                <div class="meta">
+                    <span>TED-Ed</span>
+                    <span>♥ 4.8K</span>
+                </div>
+                
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/_GI9-J-sE5k" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, '_GI9-J-sE5k')">
+                <img src="https://i.ytimg.com/vi/_GI9-J-sE5k/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
                 <div class="title">What’s the best position to sleep in? - Rachel Marie E. Salas</div>
-                <div class="meta"><span>TED-Ed</span><span class="hl">PLAY</span></div>
+                <div class="meta">
+                    <span>TED-Ed</span>
+                    <span>♥ 30.5K</span>
+                </div>
+                
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/KiIYEMm_P8Q" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, 'fO5FwBcCJBY')">
+                <img src="https://i.ytimg.com/vi/fO5FwBcCJBY/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
-                <div class="title">THE GRINCH TOOK OVER MY TREE! 🎄🟢 Easy Christmas Tree Decorating Hacks! 🏆</div>
-                <div class="meta"><span>5-Minute Crafts</span><span class="hl">PLAY</span></div>
+                <div class="title">Would You Date Him for $10,000?</div>
+                <div class="meta">
+                    <span>MrBeast</span>
+                    <span>♥ 2077.6K</span>
+                </div>
+                
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/jIgB3wyY0ls" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, 'U-x6KxH1kB4')">
+                <img src="https://i.ytimg.com/vi/U-x6KxH1kB4/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
-                <div class="title">5-MINUTE BUDGET HACKS! ⏱️ Save Christmas & Your Wallet! 🎁</div>
-                <div class="meta"><span>5-Minute Crafts</span><span class="hl">PLAY</span></div>
+                <div class="title">How Many People to Pull a Plane?</div>
+                <div class="meta">
+                    <span>MrBeast</span>
+                    <span>♥ 594.0K</span>
+                </div>
+                
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/kFoWk3HSUAg" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, '8bMh8azh3CY')">
+                <img src="https://i.ytimg.com/vi/8bMh8azh3CY/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
-                <div class="title">EAT THE RAINBOW! 🌈 Satisfying & Delicious Food Hacks! 😋</div>
-                <div class="meta"><span>5-Minute Crafts</span><span class="hl">PLAY</span></div>
+                <div class="title">100 Pilots Fight For A Private Jet</div>
+                <div class="meta">
+                    <span>MrBeast</span>
+                    <span>♥ 1559.0K</span>
+                </div>
+                
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/NC1nzXq6Rh4" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, 'NC1nzXq6Rh4')">
+                <img src="https://i.ytimg.com/vi/NC1nzXq6Rh4/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
                 <div class="title">PROOF the Trifold is Awesome!</div>
-                <div class="meta"><span>Marques Brownlee</span><span class="hl">PLAY</span></div>
+                <div class="meta">
+                    <span>Marques Brownlee</span>
+                    <span>♥ 9.1K</span>
+                </div>
+                
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/trsHTKqmZOk" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, 'trsHTKqmZOk')">
+                <img src="https://i.ytimg.com/vi/trsHTKqmZOk/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
                 <div class="title">Samsung Galaxy Z Tri Fold Impressions: NOW It Makes Sense!</div>
-                <div class="meta"><span>Marques Brownlee</span><span class="hl">PLAY</span></div>
+                <div class="meta">
+                    <span>Marques Brownlee</span>
+                    <span>♥ 76.9K</span>
+                </div>
+                
             </div>
         </div>
         
         <div class="card">
-            <div class="vid"><iframe src="https://www.youtube.com/embed/sfyL4BswUeE" loading="lazy" allowfullscreen></iframe></div>
+            <div class="vid-wrap" onclick="play(this, 'sfyL4BswUeE')">
+                <img src="https://i.ytimg.com/vi/sfyL4BswUeE/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
             <div class="info">
                 <div class="title">Smartphone Awards 2025!</div>
-                <div class="meta"><span>Marques Brownlee</span><span class="hl">PLAY</span></div>
+                <div class="meta">
+                    <span>Marques Brownlee</span>
+                    <span>♥ 163.5K</span>
+                </div>
+                
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid-wrap" onclick="play(this, 'eIBEK-_NMJc')">
+                <img src="https://i.ytimg.com/vi/eIBEK-_NMJc/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
+            <div class="info">
+                <div class="title">Primitive Technology: Grate furnace, wood fired smelting experiment</div>
+                <div class="meta">
+                    <span>Primitive Technology</span>
+                    <span>♥ 41.9K</span>
+                </div>
+                
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid-wrap" onclick="play(this, 'UqJHfTkvVY4')">
+                <img src="https://i.ytimg.com/vi/UqJHfTkvVY4/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
+            <div class="info">
+                <div class="title">Primitive Technology: Wood ash & crushed terracotta mortar</div>
+                <div class="meta">
+                    <span>Primitive Technology</span>
+                    <span>♥ 63.7K</span>
+                </div>
+                
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="vid-wrap" onclick="play(this, 'y8o7qkmiDso')">
+                <img src="https://i.ytimg.com/vi/y8o7qkmiDso/maxresdefault.jpg" loading="lazy">
+                
+                <div class="play-icon"></div>
+            </div>
+            <div class="info">
+                <div class="title">Primitive Technology: Double water bellows</div>
+                <div class="meta">
+                    <span>Primitive Technology</span>
+                    <span>♥ 47.6K</span>
+                </div>
+                
             </div>
         </div>
         </div></div>
         </div>
+
         <script>
             function show(id, btn) {
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
                 document.getElementById(id).classList.add('active');
                 btn.classList.add('active');
+            }
+            function play(wrap, id) {
+                wrap.innerHTML = '<iframe src="https://www.youtube.com/embed/'+id+'?autoplay=1" allow="autoplay; fullscreen" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"></iframe>';
             }
         </script>
     </body>
