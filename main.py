@@ -64,9 +64,7 @@ def get_beijing_time_str():
 # --- 核心逻辑 ---
 
 def get_channel_subs_batch(youtube, channel_ids):
-    """批量获取频道的粉丝数，用于计算出圈指数"""
     subs_map = {}
-    # 去重
     unique_ids = list(set(channel_ids))
     for i in range(0, len(unique_ids), 50):
         try:
@@ -75,9 +73,8 @@ def get_channel_subs_batch(youtube, channel_ids):
                 part='statistics'
             ).execute()
             for item in res['items']:
-                # 获取粉丝数 (如果没有显示，默认给一个大数防止误判)
                 count = int(item['statistics'].get('subscriberCount', 1000000))
-                if count == 0: count = 1 # 防止除以0
+                if count == 0: count = 1
                 subs_map[item['id']] = count
         except: pass
     return subs_map
@@ -92,7 +89,6 @@ def attach_hot_comment(youtube, video_item):
             raw = res['items'][0]['snippet']['topLevelComment']['snippet']['textDisplay']
             raw = html.unescape(raw).replace('\n', ' ')
             zh = translate_text(raw)
-            # 截取短评
             if len(zh) > 20: zh = zh[:18] + "..."
             video_item['hot_comment'] = zh
         else: video_item['hot_comment'] = ""
@@ -114,7 +110,6 @@ def fetch_categorized_global_pool(youtube):
             for item in res['items']:
                 if item['id'] not in seen_ids:
                     item['region_flag'] = flag
-                    # 翻译标题
                     org = item['snippet']['title']
                     zh = translate_text(org)
                     item['title_dual'] = {'zh': zh, 'org': org}
@@ -123,12 +118,12 @@ def fetch_categorized_global_pool(youtube):
         except: pass
 
     # 2. 准备黑马计算
-    print("正在计算黑马指数 (Breakout Score)...")
+    print("正在计算黑马指数...")
     all_channel_ids = [v['snippet']['channelId'] for v in raw_videos]
     subs_map = get_channel_subs_batch(youtube, all_channel_ids)
 
-    # 3. 分桶 (增加 Breakout 桶)
-    bucket_breakout = [] # 黑马
+    # 3. 分桶
+    bucket_breakout = []
     bucket_music = []
     bucket_ent = []
     bucket_content = []
@@ -138,34 +133,27 @@ def fetch_categorized_global_pool(youtube):
         cat = v['snippet'].get('categoryId', '0')
         if cat in ['1', '20', '25']: continue
         
-        # 数据填充
         v['like_cnt'] = int(v['statistics'].get('likeCount', 0))
         v['view_cnt'] = int(v['statistics'].get('viewCount', 0))
         cid = v['snippet']['channelId']
         subs = subs_map.get(cid, 10000000)
         
-        # 计算出圈倍率 (播放量 / 粉丝数)
-        # 如果播放量 > 粉丝数 * 3 (倍率>3)，且播放量本身不低(>5万)，视为黑马
         viral_ratio = v['view_cnt'] / subs
         v['viral_ratio'] = viral_ratio
         
         thumbs = v['snippet']['thumbnails']
         v['cover'] = thumbs.get('maxres', thumbs.get('high', thumbs.get('medium')))['url']
         
-        # 优先进黑马桶
         if viral_ratio > 3.0 and v['view_cnt'] > 50000:
             bucket_breakout.append(v)
-        # 否则进普通分类
         elif cat == '10': bucket_music.append(v)
         elif cat == '24': bucket_ent.append(v)
         else: bucket_content.append(v)
 
-    # 4. 排序与截断
-    # 黑马按倍率排
+    # 4. 排序
     bucket_breakout.sort(key=lambda x: x['viral_ratio'], reverse=True)
-    final_breakout = bucket_breakout[:8] # 取前8个最狠的黑马
+    final_breakout = bucket_breakout[:8]
 
-    # 其他按点赞排
     bucket_music.sort(key=lambda x: x['like_cnt'], reverse=True)
     bucket_ent.sort(key=lambda x: x['like_cnt'], reverse=True)
     bucket_content.sort(key=lambda x: x['like_cnt'], reverse=True)
@@ -174,7 +162,6 @@ def fetch_categorized_global_pool(youtube):
     final_ent = bucket_ent[:4]
     final_content = bucket_content[:30]
     
-    # 获取神评论
     print("正在获取神评论...")
     all_selected = final_breakout + final_music + final_ent + final_content
     for v in all_selected:
@@ -182,6 +169,7 @@ def fetch_categorized_global_pool(youtube):
         
     return final_breakout, final_music, final_ent, final_content
 
+# --- 核心逻辑 2: 品牌/博主抓取 (这里是你之前弄丢的部分) ---
 def fetch_channel_videos(youtube, channel_ids):
     videos = []
     for i in range(0, len(channel_ids), 50):
@@ -194,6 +182,7 @@ def fetch_channel_videos(youtube, channel_ids):
                     v_data = {'id': vid['snippet']['resourceId']['videoId'], 'snippet': vid['snippet']}
                     thumbs = vid['snippet']['thumbnails']
                     v_data['cover'] = thumbs.get('maxres', thumbs.get('high', thumbs.get('medium')))['url']
+                    
                     org = vid['snippet']['title']
                     zh = translate_text(org)
                     v_data['title_dual'] = {'zh': zh, 'org': org}
@@ -214,7 +203,7 @@ def fetch_channel_videos(youtube, channel_ids):
         except: pass
     return final_videos
 
-# --- 网页生成 (新布局：黑马置顶 + 悬浮UI) ---
+# --- 网页生成 ---
 def generate_html(breakout, music, ent, content, brands, creators):
     today_str = get_beijing_time_str()
     
@@ -235,30 +224,24 @@ def generate_html(breakout, music, ent, content, brands, creators):
             
             .container {{ max-width: 1600px; margin: 0 auto; padding: 20px; }}
             
-            /* 板块标题 */
             .section-header {{ display: flex; align-items: center; margin: 60px 0 30px; border-bottom: 1px solid #333; padding-bottom: 10px; }}
             .section-title {{ font-size: 1.8rem; font-weight: 800; color: #fff; margin-right: 15px; }}
             .section-tag {{ background: var(--accent); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }}
             
-            /* 网格布局 */
             .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }}
-            .grid-wide {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 30px; }} /* 黑马榜卡片大一点 */
+            .grid-wide {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 30px; }}
             
-            /* 高级悬浮卡片 */
             .card {{ position: relative; border-radius: 12px; overflow: hidden; background: #111; transition: transform 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }}
             .card:hover {{ transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.5); }}
             
-            /* 封面区域 */
             .cover-wrap {{ position: relative; padding-bottom: 56.25%; cursor: pointer; }}
             .cover-wrap img {{ position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; transition: opacity 0.3s; }}
             .card:hover .cover-wrap img {{ opacity: 0.8; }}
             
-            /* 播放按钮 (居中) */
             .play-btn {{ position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); opacity: 0; transition: all 0.3s; width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; }}
             .play-btn::after {{ content: ''; border: 10px solid transparent; border-left: 16px solid #fff; margin-left: 6px; }}
             .card:hover .play-btn {{ opacity: 1; transform: translate(-50%, -50%) scale(1); }}
 
-            /* 右上角悬浮标 (Pinterest Style) */
             .badge-top-right {{ 
                 position: absolute; top: 12px; right: 12px; 
                 display: flex; flex-direction: column; gap: 6px; align-items: flex-end;
@@ -266,7 +249,6 @@ def generate_html(breakout, music, ent, content, brands, creators):
             }}
             .badge-item {{ background: var(--glass); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; color: #fff; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1); font-weight: 500; display: flex; align-items: center; gap: 5px; }}
             
-            /* 标题区域 */
             .meta-box {{ padding: 15px; }}
             .title-zh {{ font-weight: 700; font-size: 1rem; color: #fff; margin-bottom: 4px; line-height: 1.4; }}
             .title-org {{ font-size: 0.8rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
@@ -282,11 +264,10 @@ def generate_html(breakout, music, ent, content, brands, creators):
         </header>
 
         <div class="container">
-            
-            <!-- 1. 黑马榜 (Breakout) -->
+            <!-- 1. 黑马榜 -->
             <div class="section-header">
                 <div class="section-title">🚀 Breakout Hits</div>
-                <div class="section-tag">VIRAL & TRENDING</div>
+                <div class="section-tag">VIRAL</div>
             </div>
             <div class="grid-wide">{render_cards(breakout, 'breakout')}</div>
 
@@ -312,7 +293,6 @@ def generate_html(breakout, music, ent, content, brands, creators):
             <div class="grid">
                 {render_cards(brands + creators, 'radar')}
             </div>
-
         </div>
 
         <script>
@@ -330,24 +310,18 @@ def render_cards(videos, type):
     if not videos: return "<p style='color:#444'>Searching for data...</p>"
     html = ""
     for v in videos:
-        # 1. 右上角悬浮信息
         badges_html = ""
-        # 国旗
         if 'region_flag' in v:
             badges_html += f"<div class='badge-item'>{v['region_flag']} Region</div>"
-        # 热评
         if v.get('hot_comment'):
              badges_html += f"<div class='badge-item'>💬 {v['hot_comment']}</div>"
-        # 黑马倍率
         if type == 'breakout' and 'viral_ratio' in v:
              badges_html += f"<div class='badge-item' style='color:#ffdd59'>⚡ {round(v['viral_ratio'], 1)}x Viral</div>"
 
-        # 2. 统计数据
         s = v.get('statistics', {})
         view_cnt = int(s.get('viewCount', 0))
         label_view = f"{round(view_cnt/1000, 1)}K Views"
         
-        # 3. 标题
         t_zh = v.get('title_dual', {}).get('zh', v['snippet']['title'])
         t_org = v.get('title_dual', {}).get('org', '')
         if t_zh == t_org: t_org = ""
@@ -376,10 +350,7 @@ def main():
     youtube = get_youtube_service()
     if not youtube: return
     
-    # 1. 抓取全球数据 (含黑马计算)
     breakout, music, ent, content = fetch_categorized_global_pool(youtube)
-    
-    # 2. 抓取关注列表
     brands = fetch_channel_videos(youtube, BRAND_CHANNELS)
     creators = fetch_channel_videos(youtube, CREATOR_CHANNELS)
     
