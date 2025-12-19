@@ -2,17 +2,17 @@ name: Update Video Website
 
 on:
   schedule:
-    - cron: '15 22 * * *' # 北京时间每天早上 06:15 运行
-  workflow_dispatch:      # 允许手动按钮运行
+    - cron: '15 22 * * *' # 每天自动跑
+  workflow_dispatch:      # 允许手动跑
   push:
     paths:
-      - 'main.py'         # 修改 main.py 时自动运行
+      - 'main.py'         # 改代码自动跑
 
 permissions:
   contents: write
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -23,8 +23,7 @@ jobs:
         with:
           python-version: '3.9'
 
-      # --- 关键修改在这里 ---
-      # 我们增加了 deep-translator 的安装命令
+      # 👇 【重点】这里加了 deep-translator
       - name: Install dependencies
         run: |
           pip install google-api-python-client
@@ -40,5 +39,5 @@ jobs:
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add index.html
-          git commit -m "Auto-update: Global Trends" || echo "No changes to commit"
+          git commit -m "Auto-update content" || echo "No changes to commit"
           git push
